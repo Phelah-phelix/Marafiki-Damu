@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import ChamaGroup, GroupCreationRequest, GroupAdmin, Member, Contribution, WeeklyProgress, PasswordResetToken
+from .models import ChamaGroup, GroupAdmin, Member, Contribution, WeeklyProgress, PasswordResetToken, AI_Prediction
 
 @admin.register(ChamaGroup)
 class ChamaGroupAdmin(admin.ModelAdmin):
@@ -7,15 +7,9 @@ class ChamaGroupAdmin(admin.ModelAdmin):
     search_fields = ['group_name', 'group_code']
     readonly_fields = ['group_code', 'created_at']
 
-@admin.register(GroupCreationRequest)
-class GroupCreationRequestAdmin(admin.ModelAdmin):
-    list_display = ['requester', 'group_name', 'status', 'created_at']
-    list_filter = ['status']
-    search_fields = ['requester__username', 'group_name']
-
 @admin.register(GroupAdmin)
 class GroupAdminAdmin(admin.ModelAdmin):
-    list_display = ['user', 'managed_group', 'assigned_at']
+    list_display = ['user', 'managed_group', 'created_at']
     search_fields = ['user__username', 'managed_group__group_name']
 
 @admin.register(Member)
@@ -32,7 +26,7 @@ class MemberAdmin(admin.ModelAdmin):
 @admin.register(Contribution)
 class ContributionAdmin(admin.ModelAdmin):
     list_display = ['member', 'amount', 'date', 'transaction_id']
-    list_filter = ['date', 'payment_method']
+    list_filter = ['date']
     search_fields = ['transaction_id', 'member__user__username']
 
 @admin.register(WeeklyProgress)
@@ -42,3 +36,7 @@ class WeeklyProgressAdmin(admin.ModelAdmin):
 @admin.register(PasswordResetToken)
 class PasswordResetTokenAdmin(admin.ModelAdmin):
     list_display = ['user', 'created_at', 'expires_at', 'is_used']
+
+@admin.register(AI_Prediction)
+class AIPredictionAdmin(admin.ModelAdmin):
+    list_display = ['member', 'prediction_date', 'trend', 'confidence_score']
