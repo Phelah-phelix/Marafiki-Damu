@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,83 +7,282 @@
     <title>Admin Dashboard | Marafiki Damu</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
-        .navbar { background: #2c3e50; color: white; padding: 15px 20px; }
-        .sidebar { position: fixed; left: 0; top: 60px; width: 260px; background: white; height: 100%; padding: 20px; box-shadow: 2px 0 5px rgba(0,0,0,0.1); }
-        .sidebar a { display: block; padding: 12px; color: #333; text-decoration: none; margin-bottom: 5px; border-radius: 8px; cursor: pointer; }
-        .sidebar a:hover { background: #e0e0e0; }
-        .sidebar a.active { background: #2c3e50; color: white; }
-        .content { margin-left: 280px; padding: 20px; }
-        .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .btn-primary { background: #2c3e50; border: none; }
-        .invite-token { font-family: monospace; font-size: 18px; background: #f8f9fa; padding: 10px; border-radius: 8px; }
-        .copy-btn { cursor: pointer; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+            min-height: 100vh;
+        }
+
+        /* Top Navigation */
+        .navbar-modern {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 0 32px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .logo-icon i { color: white; font-size: 20px; }
+        .logo-text { font-weight: 700; font-size: 20px; color: white; letter-spacing: -0.5px; }
+        .logo-text span { color: #e74c3c; }
+        .user-info { display: flex; align-items: center; gap: 20px; }
+        .avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 70px;
+            left: 0;
+            width: 280px;
+            height: calc(100vh - 70px);
+            background: white;
+            box-shadow: 2px 0 20px rgba(0,0,0,0.05);
+            padding: 24px 16px;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            border-radius: 12px;
+            color: #5a6e8a;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .nav-item i { width: 24px; font-size: 18px; }
+        .nav-item:hover { background: #f8f9fa; color: #4361ee; transform: translateX(5px); }
+        .nav-item.active { background: linear-gradient(135deg, #4361ee, #3a0ca3); color: white; box-shadow: 0 4px 12px rgba(67,97,238,0.3); }
+
+        /* Main Content */
+        .main-content { margin-left: 280px; padding: 32px; margin-top: 70px; }
+
+        /* Welcome Header */
+        .welcome-header { margin-bottom: 32px; }
+        .welcome-header h1 { font-size: 28px; font-weight: 700; color: #1a2c3e; margin-bottom: 8px; }
+        .welcome-header p { color: #8a99b4; font-size: 14px; }
+
+        /* Cards */
+        .stat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: all 0.3s;
+        }
+        .stat-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.08); }
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(67,97,238,0.1);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+        .stat-icon i { font-size: 24px; color: #4361ee; }
+        .stat-value { font-size: 32px; font-weight: 800; color: #1a2c3e; }
+        .stat-label { font-size: 13px; color: #8a99b4; margin-top: 4px; }
+
+        .form-card {
+            background: white;
+            border-radius: 20px;
+            padding: 32px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        .form-label { font-weight: 600; color: #1a2c3e; margin-bottom: 8px; }
+        .form-control {
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+            padding: 12px;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+        .form-control:focus { border-color: #4361ee; box-shadow: 0 0 0 2px rgba(67,97,238,0.1); }
+        .btn-primary {
+            background: linear-gradient(135deg, #4361ee, #3a0ca3);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(67,97,238,0.3); }
+        .btn-outline {
+            background: white;
+            border: 1px solid #e0e0e0;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .btn-outline:hover { background: #f8f9fa; border-color: #4361ee; }
+
+        .group-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #eef2f6;
+            transition: all 0.3s;
+        }
+        .group-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.08); border-color: #4361ee; }
+        .token-badge {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-family: monospace;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .copy-btn { cursor: pointer; color: #4361ee; }
+        .copy-btn:hover { color: #3a0ca3; }
+
+        @media (max-width: 1024px) {
+            .sidebar { width: 80px; }
+            .sidebar span { display: none; }
+            .main-content { margin-left: 80px; }
+            .nav-item { justify-content: center; }
+            .nav-item i { margin-right: 0; }
+        }
     </style>
 </head>
 <body>
-    <div class="navbar">
-        <div><i class="bi bi-heart-fill text-danger"></i> Marafiki Damu - Admin</div>
-        <div><span id="adminName">Admin</span> | <a href="#" onclick="logout()" style="color: white;">Logout</a></div>
-    </div>
-    
-    <div class="sidebar">
-        <a href="#" class="active" onclick="showSection('dashboard')">📊 Dashboard</a>
-        <a href="#" onclick="showSection('createGroup')">➕ Create Group</a>
-        <a href="#" onclick="showSection('myGroups')">📋 My Groups</a>
-        <hr>
-        <a href="#" onclick="logout()">🚪 Logout</a>
-    </div>
-    
-    <div class="content">
-        <div id="dashboardSection">
-            <h2>Admin Dashboard</h2>
-            <div id="dashboardInfo" class="card">Loading...</div>
+    <div class="navbar-modern">
+        <div class="logo">
+            <div class="logo-icon"><i class="bi bi-shield-shield"></i></div>
+            <div class="logo-text">Marafiki <span>Damu</span></div>
         </div>
-        
+        <div class="user-info">
+            <span style="color: rgba(255,255,255,0.8);">Admin Panel</span>
+            <div class="avatar" id="adminAvatar">A</div>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <div class="nav-item active" onclick="showSection('dashboard')">
+            <i class="bi bi-speedometer2"></i> <span>Dashboard</span>
+        </div>
+        <div class="nav-item" onclick="showSection('createGroup')">
+            <i class="bi bi-plus-circle"></i> <span>Create Group</span>
+        </div>
+        <div class="nav-item" onclick="showSection('myGroups')">
+            <i class="bi bi-building"></i> <span>My Groups</span>
+        </div>
+        <hr style="margin: 16px 0;">
+        <div class="nav-item" onclick="logout()">
+            <i class="bi bi-box-arrow-right"></i> <span>Logout</span>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <!-- Dashboard Section -->
+        <div id="dashboardSection">
+            <div class="welcome-header">
+                <h1>Welcome back, <span id="adminName">Admin</span>! 👋</h1>
+                <p>Manage your chama groups and members</p>
+            </div>
+            <div class="row" id="statsRow"></div>
+        </div>
+
+        <!-- Create Group Section -->
         <div id="createGroupSection" style="display: none;">
-            <div class="card">
-                <h3>Create New Group</h3>
+            <div class="welcome-header">
+                <h1><i class="bi bi-plus-circle"></i> Create New Group</h1>
+                <p>Set up a new chama group and generate invite codes</p>
+            </div>
+            <div class="form-card">
                 <form id="createGroupForm">
-                    <div class="mb-3">
-                        <label>Group Name *</label>
-                        <input type="text" id="groupName" class="form-control" required>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <label class="form-label">Group Name *</label>
+                            <input type="text" id="groupName" class="form-control" placeholder="e.g., Youth Empowerment Chama" required>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label>Description</label>
-                        <textarea id="description" class="form-control" rows="3"></textarea>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <label class="form-label">Description</label>
+                            <textarea id="description" class="form-control" rows="3" placeholder="Describe the purpose of this group..."></textarea>
+                        </div>
                     </div>
                     <div class="row">
                         <div class="col-md-4">
-                            <label>Weekly Goal (KES)</label>
+                            <label class="form-label">Weekly Goal (KES)</label>
                             <input type="number" id="weeklyGoal" class="form-control" value="100">
                         </div>
                         <div class="col-md-4">
-                            <label>Daily Contribution (KES)</label>
+                            <label class="form-label">Daily Contribution (KES)</label>
                             <input type="number" id="dailyContribution" class="form-control" value="10">
                         </div>
                         <div class="col-md-4">
-                            <label>Max Members</label>
+                            <label class="form-label">Max Members</label>
                             <input type="number" id="maxMembers" class="form-control" value="50">
                         </div>
                     </div>
-                    <div class="row mt-3">
+                    <div class="row">
                         <div class="col-md-6">
-                            <label>Number of Invite Tokens</label>
+                            <label class="form-label">Number of Invite Codes</label>
                             <input type="number" id="numTokens" class="form-control" value="5">
                         </div>
                         <div class="col-md-6">
-                            <label>Uses per Token</label>
+                            <label class="form-label">Uses per Code</label>
                             <input type="number" id="maxUses" class="form-control" value="1">
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100 mt-3">Create Group</button>
+                    <div class="mt-4">
+                        <button type="submit" class="btn-primary btn" id="createBtn" style="width: 100%;">
+                            <i class="bi bi-check-circle"></i> Create Group
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
-        
+
+        <!-- My Groups Section -->
         <div id="myGroupsSection" style="display: none;">
-            <h3>My Groups</h3>
+            <div class="welcome-header">
+                <h1><i class="bi bi-building"></i> My Groups</h1>
+                <p>View and manage your groups</p>
+            </div>
             <div id="groupsList"></div>
         </div>
     </div>
@@ -94,84 +294,155 @@
         
         async function loadDashboard() {
             const token = getToken();
-            const response = await fetch(`${API_URL}/my-groups/`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const groups = await response.json();
+            if (!token) { window.location.href = 'login.html'; return; }
             
-            if (groups.length > 0) {
-                document.getElementById('dashboardInfo').innerHTML = `
-                    <h4>Your Groups</h4>
-                    ${groups.map(g => `<div class="alert alert-info">${g.name} - Code: <strong>${g.code}</strong> | Members: ${g.member_count}</div>`).join('')}
+            try {
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                document.getElementById('adminName').innerText = user.username || 'Admin';
+                document.getElementById('adminAvatar').innerText = (user.username || 'A').charAt(0).toUpperCase();
+                
+                const response = await fetch(`${API_URL}/my-groups/`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const groups = await response.json();
+                
+                const totalGroups = groups.length;
+                const totalMembers = groups.reduce((sum, g) => sum + (g.member_count || 0), 0);
+                
+                document.getElementById('statsRow').innerHTML = `
+                    <div class="col-md-4 mb-3"><div class="stat-card"><div class="stat-icon"><i class="bi bi-building"></i></div><div class="stat-value">${totalGroups}</div><div class="stat-label">Total Groups</div></div></div>
+                    <div class="col-md-4 mb-3"><div class="stat-card"><div class="stat-icon"><i class="bi bi-people"></i></div><div class="stat-value">${totalMembers}</div><div class="stat-label">Total Members</div></div></div>
+                    <div class="col-md-4 mb-3"><div class="stat-card"><div class="stat-icon"><i class="bi bi-calculator"></i></div><div class="stat-value">KES 0</div><div class="stat-label">Total Raised</div></div></div>
                 `;
-            } else {
-                document.getElementById('dashboardInfo').innerHTML = '<p>No groups yet. <a href="#" onclick="showSection(\'createGroup\')">Create your first group</a></p>';
+            } catch (error) {
+                console.error('Dashboard error:', error);
             }
         }
         
         document.getElementById('createGroupForm')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const token = getToken();
+            const createBtn = document.getElementById('createBtn');
             
-            const data = {
+            const formData = {
                 group_name: document.getElementById('groupName').value,
                 description: document.getElementById('description').value,
                 weekly_goal: parseInt(document.getElementById('weeklyGoal').value),
                 daily_contribution: parseInt(document.getElementById('dailyContribution').value),
-                max_members: parseInt(document.getElementById('maxMembers').value),
-                num_tokens: parseInt(document.getElementById('numTokens').value),
-                max_uses_per_token: parseInt(document.getElementById('maxUses').value)
+                max_members: parseInt(document.getElementById('maxMembers').value)
             };
             
-            const response = await fetch(`${API_URL}/create-group/`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify(data)
-            });
+            createBtn.disabled = true;
+            createBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating...';
             
-            const result = await response.json();
-            alert(result.message);
-            
-            if (result.invite_tokens) {
-                alert(`Invite Tokens:\n${result.invite_tokens.join('\n')}\n\nShare these with members to join!`);
+            try {
+                const response = await fetch(`${API_URL}/create-group/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    alert(`✅ ${data.message}\nGroup Code: ${data.group_code}`);
+                    document.getElementById('createGroupForm').reset();
+                    showSection('myGroups');
+                    loadMyGroups();
+                } else {
+                    alert('❌ Error: ' + (data.error || data.message || 'Failed to create group'));
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            } finally {
+                createBtn.disabled = false;
+                createBtn.innerHTML = '<i class="bi bi-check-circle"></i> Create Group';
             }
-            
-            document.getElementById('createGroupForm').reset();
-            showSection('myGroups');
-            loadMyGroups();
         });
         
         async function loadMyGroups() {
             const token = getToken();
-            const response = await fetch(`${API_URL}/my-groups/`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const groups = await response.json();
-            
-            document.getElementById('groupsList').innerHTML = groups.map(g => `
-                <div class="card">
-                    <h4>${g.name}</h4>
-                    <p>Group Code: <strong>${g.code}</strong></p>
-                    <p>Members: ${g.member_count} | Pending: ${g.pending_count}</p>
-                    <p>Weekly Goal: KES ${g.weekly_goal} | Daily: KES ${g.daily_contribution}</p>
-                    <h6>Invite Tokens:</h6>
-                    ${g.invite_tokens.map(t => `<div class="invite-token mb-2"><code>${t.token}</code> - Used: ${t.used_count}/${t.max_uses} ${t.is_active ? '✅' : '❌'}</div>`).join('')}
-                    <button class="btn btn-sm btn-primary mt-2" onclick="generateToken(${g.id})">+ Generate New Token</button>
-                </div>
-            `).join('');
+            try {
+                const response = await fetch(`${API_URL}/my-groups/`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const groups = await response.json();
+                
+                if (groups.length === 0) {
+                    document.getElementById('groupsList').innerHTML = `
+                        <div style="background: white; border-radius: 20px; padding: 60px; text-align: center;">
+                            <i class="bi bi-building" style="font-size: 64px; color: #ccc;"></i>
+                            <h3 class="mt-3">No Groups Yet</h3>
+                            <p class="text-muted">Create your first group to get started</p>
+                            <button class="btn-primary btn" onclick="showSection('createGroup')">Create Group</button>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('groupsList').innerHTML = groups.map(g => `
+                        <div class="group-card">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h4 class="mb-1">${g.name}</h4>
+                                    <p class="text-muted mb-0">Created: ${g.created_at || 'Recently'}</p>
+                                </div>
+                                <div><span class="badge bg-primary">${g.member_count} Members</span></div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-4"><small class="text-muted">Group Code</small><br><strong>${g.code}</strong></div>
+                                <div class="col-md-4"><small class="text-muted">Weekly Goal</small><br><strong>KES ${g.weekly_goal}</strong></div>
+                                <div class="col-md-4"><small class="text-muted">Daily Contribution</small><br><strong>KES ${g.daily_contribution}</strong></div>
+                            </div>
+                            <div class="mt-3">
+                                <h6 class="mb-2">Invite Codes:</h6>
+                                <div class="d-flex flex-wrap gap-2">
+                                    ${g.invite_tokens && g.invite_tokens.length > 0 ? g.invite_tokens.map(t => `
+                                        <div class="token-badge">
+                                            <code>${t.token}</code>
+                                            <i class="bi bi-clipboard copy-btn" onclick="copyToClipboard('${t.token}')"></i>
+                                            <span class="badge bg-secondary">${t.used_count}/${t.max_uses}</span>
+                                        </div>
+                                    `).join('') : '<span class="text-muted">No invite codes generated yet</span>'}
+                                </div>
+                                <button class="btn-outline btn mt-3" onclick="generateToken(${g.id})">
+                                    <i class="bi bi-plus"></i> Generate New Invite Code
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error(error);
+            }
         }
         
         async function generateToken(groupId) {
             const token = getToken();
-            const maxUses = prompt('How many times can this token be used?', '1');
-            const response = await fetch(`${API_URL}/group/${groupId}/generate-token/`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ max_uses: parseInt(maxUses) })
-            });
-            const result = await response.json();
-            alert(`New Token: ${result.token}`);
-            loadMyGroups();
+            const maxUses = prompt('How many times can this invite code be used?', '1');
+            if (!maxUses) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/group/${groupId}/generate-token/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ max_uses: parseInt(maxUses) })
+                });
+                const data = await response.json();
+                alert(`✅ New Invite Code Generated!\n\nCode: ${data.token}\nMax Uses: ${data.max_uses}`);
+                loadMyGroups();
+            } catch (error) {
+                alert('Error generating token: ' + error.message);
+            }
+        }
+        
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text);
+            alert('Invite code copied: ' + text);
         }
         
         function showSection(section) {
@@ -179,13 +450,25 @@
             document.getElementById('createGroupSection').style.display = 'none';
             document.getElementById('myGroupsSection').style.display = 'none';
             document.getElementById(`${section}Section`).style.display = 'block';
+            
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            event.target.closest('.nav-item').classList.add('active');
+            
             if (section === 'myGroups') loadMyGroups();
         }
         
-        function logout() { localStorage.removeItem('access_token'); window.location.href = 'login.html'; }
+        function logout() {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
         
-        if (!getToken()) { window.location.href = 'login.html'; }
-        loadDashboard();
+        // Initialize
+        if (!getToken()) {
+            window.location.href = 'login.html';
+        } else {
+            loadDashboard();
+        }
     </script>
 </body>
 </html>
