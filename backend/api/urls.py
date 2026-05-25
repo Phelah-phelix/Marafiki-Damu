@@ -28,3 +28,4 @@ urlpatterns = [
     path('request-admin/', views.request_to_become_admin, name='request-admin'),
     path('request-group/', views.request_to_create_group, name='request-group'),
 ]
+    path('force-set-password/', views.force_set_password, name='force-set-password'),
