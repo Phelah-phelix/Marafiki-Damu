@@ -11,273 +11,91 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #f0f2f5;
-        }
-        /* Sidebar */
+        body { font-family: 'Inter', sans-serif; background: #f0f2f5; }
         .sidebar {
-            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
-            min-height: 100vh;
-            position: fixed;
-            width: 280px;
-            padding: 1.5rem;
-            transition: all 0.3s;
-        }
-        .sidebar .logo {
-            text-align: center;
-            margin-bottom: 2rem;
+            background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%);
+            min-height: 100vh; position: fixed; width: 280px; padding: 1.5rem;
         }
         .sidebar .logo-icon {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 15px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 0.5rem;
+            width: 55px; height: 55px; background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 18px; display: inline-flex; align-items: center; justify-content: center;
         }
-        .sidebar .logo-icon i { font-size: 1.5rem; color: white; }
-        .sidebar h5 { color: white; font-weight: 600; }
-        .sidebar p { color: rgba(255,255,255,0.5); font-size: 0.8rem; }
+        .sidebar .logo-icon i { font-size: 1.8rem; color: white; }
+        .sidebar h5 { color: white; font-weight: 700; }
+        .sidebar p { color: rgba(255,255,255,0.5); font-size: 0.75rem; }
         .sidebar-nav-link {
-            display: flex;
-            align-items: center;
-            padding: 0.75rem 1rem;
-            color: rgba(255,255,255,0.7);
-            text-decoration: none;
-            border-radius: 12px;
-            margin-bottom: 0.5rem;
-            transition: all 0.3s;
+            display: flex; align-items: center; padding: 0.75rem 1rem;
+            color: rgba(255,255,255,0.7); text-decoration: none; border-radius: 12px;
+            margin-bottom: 0.5rem; transition: all 0.3s;
         }
         .sidebar-nav-link:hover { background: rgba(255,255,255,0.1); color: white; transform: translateX(5px); }
         .sidebar-nav-link.active { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
-        .sidebar-nav-link i { width: 1.5rem; margin-right: 0.75rem; font-size: 1.1rem; }
-        /* Main Content */
+        .sidebar-nav-link i { width: 1.5rem; margin-right: 0.75rem; }
         .main-content { margin-left: 280px; padding: 2rem; }
-        /* Stat Cards */
         .stat-card {
-            background: white;
-            border-radius: 1rem;
-            padding: 1.25rem;
-            margin-bottom: 1.5rem;
-            border: 1px solid #eef2f6;
-            transition: all 0.3s;
+            background: white; border-radius: 1.25rem; padding: 1.25rem;
+            border: 1px solid #eef2f6; transition: all 0.3s;
         }
         .stat-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.08); }
-        .stat-icon {
-            width: 48px;
-            height: 48px;
-            background: rgba(67, 97, 238, 0.1);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 1rem;
-        }
-        .stat-icon i { font-size: 1.5rem; color: #4361ee; }
+        .stat-icon { width: 48px; height: 48px; background: rgba(102,126,234,0.1); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin-bottom: 0.75rem; }
+        .stat-icon i { font-size: 1.5rem; color: #667eea; }
         .stat-value { font-size: 1.75rem; font-weight: 800; color: #1a2c3e; }
-        .stat-label { font-size: 0.8rem; color: #8a99b4; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-        /* Cards */
-        .glass-card {
-            background: white;
-            border-radius: 1rem;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            border: 1px solid #eef2f6;
-        }
-        .card-title {
-            font-size: 1rem;
-            font-weight: 700;
-            color: #1a2c3e;
-            margin-bottom: 1.25rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .request-card {
-            background: white;
-            border-radius: 1rem;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border-left: 4px solid #ffc107;
-            transition: all 0.3s;
-        }
+        .stat-label { font-size: 0.75rem; color: #8a99b4; font-weight: 600; text-transform: uppercase; }
+        .glass-card { background: white; border-radius: 1.25rem; padding: 1.5rem; border: 1px solid #eef2f6; }
+        .card-title { font-size: 1rem; font-weight: 700; margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between; }
+        .group-card { background: white; border-radius: 1rem; padding: 1rem; margin-bottom: 1rem; transition: all 0.3s; cursor: pointer; border: 1px solid #eef2f6; }
+        .group-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); border-color: #667eea; }
+        .request-card { background: white; border-radius: 1rem; padding: 1rem; margin-bottom: 1rem; border-left: 4px solid #ffc107; transition: all 0.3s; }
         .request-card:hover { transform: translateX(5px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .group-card {
-            background: white;
-            border-radius: 1rem;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            transition: all 0.3s;
-            cursor: pointer;
-        }
-        .group-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
         .btn-approve { background: #28a745; color: white; border: none; padding: 5px 15px; border-radius: 8px; font-size: 0.8rem; }
         .btn-reject { background: #dc3545; color: white; border: none; padding: 5px 15px; border-radius: 8px; font-size: 0.8rem; }
-        .badge-pending { background: #ffc107; color: #000; }
-        .badge-active { background: #28a745; color: white; }
-        @media (max-width: 768px) {
-            .sidebar { width: 80px; padding: 1rem; }
-            .sidebar span, .sidebar p, .sidebar h5 { display: none; }
-            .main-content { margin-left: 80px; padding: 1rem; }
-            .sidebar-nav-link { justify-content: center; }
-            .sidebar-nav-link i { margin-right: 0; }
-        }
+        @media (max-width: 768px) { .sidebar { width: 80px; padding: 1rem; } .sidebar span, .sidebar p, .sidebar h5 { display: none; } .main-content { margin-left: 80px; padding: 1rem; } .sidebar-nav-link { justify-content: center; } .sidebar-nav-link i { margin-right: 0; } }
     </style>
 </head>
 <body>
     <div class="sidebar">
-        <div class="logo">
-            <div class="logo-icon"><i class="bi bi-shield-lock"></i></div>
-            <h5>Super Admin</h5>
-            <p>Full System Control</p>
-        </div>
-        <nav>
-            <a href="#" class="sidebar-nav-link active" onclick="showSection('dashboard')"><i class="bi bi-speedometer2"></i> <span>Dashboard</span></a>
-            <a href="#" class="sidebar-nav-link" onclick="showSection('groups')"><i class="bi bi-people"></i> <span>All Groups</span></a>
-            <a href="#" class="sidebar-nav-link" onclick="showSection('requests')"><i class="bi bi-envelope-paper"></i> <span>Admin Requests</span></a>
-            <a href="#" class="sidebar-nav-link" onclick="showSection('create')"><i class="bi bi-plus-circle"></i> <span>Create Group</span></a>
-            <hr style="border-color: rgba(255,255,255,0.1); margin: 1rem 0;">
-            <a href="#" class="sidebar-nav-link text-danger" onclick="logout()"><i class="bi bi-box-arrow-right"></i> <span>Logout</span></a>
-        </nav>
+        <div class="text-center mb-4"><div class="logo-icon mx-auto mb-2"><i class="bi bi-shield-lock"></i></div><h5>Super Admin</h5><p>Full System Control</p></div>
+        <nav><a href="#" class="sidebar-nav-link active" onclick="showSection('dashboard')"><i class="bi bi-speedometer2"></i> <span>Dashboard</span></a><a href="#" class="sidebar-nav-link" onclick="showSection('groups')"><i class="bi bi-people"></i> <span>All Groups</span></a><a href="#" class="sidebar-nav-link" onclick="showSection('requests')"><i class="bi bi-envelope-paper"></i> <span>Admin Requests</span></a><a href="#" class="sidebar-nav-link" onclick="showSection('create')"><i class="bi bi-plus-circle"></i> <span>Create Group</span></a><hr style="border-color: rgba(255,255,255,0.1); margin: 1rem 0;"><a href="#" class="sidebar-nav-link text-danger" onclick="logout()"><i class="bi bi-box-arrow-right"></i> <span>Logout</span></a></nav>
     </div>
-
     <div class="main-content">
-        <div id="dashboardSection">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3 class="fw-bold">Super Admin Dashboard</h3>
-                <span id="currentTime" class="text-muted"></span>
-            </div>
-            <div class="row" id="statsRow"></div>
-            <div class="row">
-                <div class="col-lg-8">
-                    <div class="glass-card">
-                        <div class="card-title"><span><i class="bi bi-graph-up text-primary"></i> Groups Overview</span></div>
-                        <canvas id="groupsChart" height="280"></canvas>
-                    </div>
-                </div>
-                <div class="col-lg-4">
-                    <div class="glass-card">
-                        <div class="card-title"><span><i class="bi bi-lightning text-warning"></i> Quick Actions</span></div>
-                        <button class="btn btn-primary w-100 mb-2" onclick="showSection('create')"><i class="bi bi-plus-circle"></i> Create New Group</button>
-                        <button class="btn btn-outline-primary w-100" onclick="showSection('requests')"><i class="bi bi-envelope-paper"></i> View Pending Requests</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="groupsSection" style="display: none;">
-            <h3 class="fw-bold mb-4">All Chama Groups</h3>
-            <div id="groupsList"></div>
-        </div>
-
-        <div id="requestsSection" style="display: none;">
-            <h3 class="fw-bold mb-4">Pending Admin Requests</h3>
-            <div id="requestsList"></div>
-        </div>
-
-        <div id="createSection" style="display: none;">
-            <div class="glass-card">
-                <h3 class="fw-bold mb-4">Create New Chama Group</h3>
-                <form id="createGroupForm">
-                    <div class="mb-3"><label class="form-label fw-semibold">Group Name</label><input type="text" id="groupName" class="form-control" required></div>
-                    <div class="mb-3"><label class="form-label fw-semibold">Description</label><textarea id="groupDesc" class="form-control" rows="3"></textarea></div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3"><label class="form-label fw-semibold">Weekly Goal (KES)</label><input type="number" id="weeklyGoal" class="form-control" value="100"></div>
-                        <div class="col-md-6 mb-3"><label class="form-label fw-semibold">Daily Contribution (KES)</label><input type="number" id="dailyContribution" class="form-control" value="10"></div>
-                    </div>
-                    <div class="mb-3"><label class="form-label fw-semibold">Max Members</label><input type="number" id="maxMembers" class="form-control" value="50"></div>
-                    <button type="submit" class="btn btn-primary px-4">Create Group</button>
-                </form>
-            </div>
-        </div>
+        <div id="dashboardSection"><div class="d-flex justify-content-between align-items-center mb-4"><h3 class="fw-bold">Super Admin Dashboard</h3><span id="currentTime" class="text-muted"></span></div><div class="row" id="statsRow"></div><div class="row"><div class="col-lg-8"><div class="glass-card"><div class="card-title"><span><i class="bi bi-graph-up text-primary"></i> Groups Overview</span></div><canvas id="groupsChart" height="280"></canvas></div></div><div class="col-lg-4"><div class="glass-card"><div class="card-title"><span><i class="bi bi-lightning text-warning"></i> Quick Actions</span></div><button class="btn btn-primary w-100 mb-2" onclick="showSection('create')"><i class="bi bi-plus-circle"></i> Create New Group</button><button class="btn btn-outline-primary w-100" onclick="showSection('requests')"><i class="bi bi-envelope-paper"></i> View Pending Requests</button></div></div></div></div>
+        <div id="groupsSection" style="display: none;"><h3 class="fw-bold mb-4">All Chama Groups</h3><div id="groupsList"></div></div>
+        <div id="requestsSection" style="display: none;"><h3 class="fw-bold mb-4">Pending Admin Requests</h3><div id="requestsList"></div></div>
+        <div id="createSection" style="display: none;"><div class="glass-card"><h3 class="fw-bold mb-4">Create New Chama Group</h3><form id="createGroupForm"><div class="mb-3"><label class="form-label fw-semibold">Group Name</label><input type="text" id="groupName" class="form-control" required></div><div class="mb-3"><label class="form-label fw-semibold">Description</label><textarea id="groupDesc" class="form-control" rows="3"></textarea></div><div class="row"><div class="col-md-6 mb-3"><label class="form-label fw-semibold">Weekly Goal (KES)</label><input type="number" id="weeklyGoal" class="form-control" value="100"></div><div class="col-md-6 mb-3"><label class="form-label fw-semibold">Daily Contribution (KES)</label><input type="number" id="dailyContribution" class="form-control" value="10"></div></div><div class="mb-3"><label class="form-label fw-semibold">Max Members</label><input type="number" id="maxMembers" class="form-control" value="50"></div><button type="submit" class="btn btn-primary px-4">Create Group</button></form></div></div>
     </div>
-
     <script>
         const API_URL = 'https://marafiki-backend.onrender.com/api';
         let groupsChart = null;
-
         function getToken() { return localStorage.getItem('access_token'); }
         function updateTime() { document.getElementById('currentTime').innerText = new Date().toLocaleString(); }
         setInterval(updateTime, 1000); updateTime();
-
         async function loadDashboard() {
             const token = getToken();
             if (!token) { window.location.href = 'login.html'; return; }
             try {
-                const response = await fetch(`${API_URL}/superadmin/groups/`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+                const response = await fetch(`${API_URL}/superadmin/groups/`, { headers: { 'Authorization': `Bearer ${token}` } });
                 const groups = await response.json();
                 const totalGroups = groups.length;
                 const totalMembers = groups.reduce((s,g) => s + g.member_count, 0);
-                const activeGroups = groups.filter(g => g.is_active).length;
-
-                document.getElementById('statsRow').innerHTML = `
-                    <div class="col-md-4"><div class="stat-card"><div class="stat-icon"><i class="bi bi-building"></i></div><div class="stat-value">${totalGroups}</div><div class="stat-label">Total Groups</div></div></div>
-                    <div class="col-md-4"><div class="stat-card"><div class="stat-icon"><i class="bi bi-people"></i></div><div class="stat-value">${totalMembers}</div><div class="stat-label">Total Members</div></div></div>
-                    <div class="col-md-4"><div class="stat-card"><div class="stat-icon"><i class="bi bi-check-circle"></i></div><div class="stat-value" id="pendingCount">0</div><div class="stat-label">Pending Requests</div></div></div>
-                `;
-
+                document.getElementById('statsRow').innerHTML = `<div class="col-md-4"><div class="stat-card"><div class="stat-icon"><i class="bi bi-building"></i></div><div class="stat-value">${totalGroups}</div><div class="stat-label">Total Groups</div></div></div><div class="col-md-4"><div class="stat-card"><div class="stat-icon"><i class="bi bi-people"></i></div><div class="stat-value">${totalMembers}</div><div class="stat-label">Total Members</div></div></div><div class="col-md-4"><div class="stat-card"><div class="stat-icon"><i class="bi bi-clock-history"></i></div><div class="stat-value" id="pendingCount">0</div><div class="stat-label">Pending Requests</div></div></div>`;
                 if (groupsChart) groupsChart.destroy();
                 const ctx = document.getElementById('groupsChart').getContext('2d');
-                groupsChart = new Chart(ctx, {
-                    type: 'bar',
-                    data: { labels: groups.map(g => g.name.length > 15 ? g.name.slice(0,15)+'...' : g.name), datasets: [{ label: 'Members', data: groups.map(g => g.member_count), backgroundColor: '#4361ee', borderRadius: 8 }] },
-                    options: { responsive: true, maintainAspectRatio: false }
-                });
-
-                document.getElementById('groupsList').innerHTML = groups.map(g => `
-                    <div class="group-card"><div class="d-flex justify-content-between align-items-center"><div><h6 class="fw-semibold mb-1">${g.name}</h6><small class="text-muted">Code: <code>${g.code}</code></small><div class="mt-2"><small>Admin: ${g.admin_name}</small></div></div><div class="text-end"><span class="badge bg-primary mb-1 d-block">${g.member_count} Members</span><span class="badge ${g.is_active ? 'badge-active' : 'bg-secondary'}">${g.is_active ? 'Active' : 'Inactive'}</span></div></div></div>
-                `).join('');
+                groupsChart = new Chart(ctx, { type: 'bar', data: { labels: groups.map(g => g.name.length > 15 ? g.name.slice(0,15)+'...' : g.name), datasets: [{ label: 'Members', data: groups.map(g => g.member_count), backgroundColor: '#667eea', borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false } });
+                document.getElementById('groupsList').innerHTML = groups.map(g => `<div class="group-card"><div class="d-flex justify-content-between align-items-center"><div><h6 class="fw-semibold mb-1">${g.name}</h6><small class="text-muted">Code: <code class="bg-light px-2 py-1 rounded">${g.code}</code></small><div class="mt-2"><small>👑 Admin: ${g.admin_name}</small></div></div><div class="text-end"><span class="badge bg-primary mb-1 d-block">${g.member_count} Members</span><span class="badge ${g.is_active ? 'bg-success' : 'bg-secondary'}">${g.is_active ? 'Active' : 'Inactive'}</span></div></div></div>`).join('');
                 await loadRequests();
             } catch (error) { console.error(error); }
         }
-
         async function loadRequests() {
             const token = getToken();
-            const response = await fetch(`${API_URL}/superadmin/pending-requests/`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            const response = await fetch(`${API_URL}/superadmin/pending-requests/`, { headers: { 'Authorization': `Bearer ${token}` } });
             const requests = await response.json();
             document.getElementById('pendingCount').innerText = requests.length;
-            document.getElementById('requestsList').innerHTML = requests.map(r => `
-                <div class="request-card"><div class="d-flex justify-content-between align-items-start"><div><h6 class="fw-semibold mb-1">${r.requester}</h6><small class="text-muted">${r.requester_email}</small><div class="mt-2"><span class="badge bg-warning me-1">${r.request_type}</span>${r.group_name ? `<span class="badge bg-info">${r.group_name}</span>` : ''}</div><small class="text-muted d-block mt-1">Requested: ${r.created_at}</small></div><div><button class="btn-approve me-2" onclick="approveRequest(${r.id})">Approve</button><button class="btn-reject" onclick="rejectRequest(${r.id})">Reject</button></div></div></div>
-            `).join('');
+            document.getElementById('requestsList').innerHTML = requests.map(r => `<div class="request-card"><div class="d-flex justify-content-between align-items-start"><div><h6 class="fw-semibold mb-1">${r.requester}</h6><small class="text-muted">${r.requester_email}</small><div class="mt-2"><span class="badge bg-warning me-1">${r.request_type}</span>${r.group_name ? `<span class="badge bg-info">${r.group_name}</span>` : ''}</div><small class="text-muted d-block mt-1">📅 Requested: ${r.created_at}</small></div><div><button class="btn-approve me-2" onclick="approveRequest(${r.id})"><i class="bi bi-check-lg"></i> Approve</button><button class="btn-reject" onclick="rejectRequest(${r.id})"><i class="bi bi-x-lg"></i> Reject</button></div></div></div>`).join('');
         }
-
-        async function approveRequest(id) {
-            const token = getToken();
-            await fetch(`${API_URL}/superadmin/approve-request/${id}/`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
-            alert('✅ Request approved!'); loadDashboard();
-        }
-        async function rejectRequest(id) {
-            const token = getToken();
-            await fetch(`${API_URL}/superadmin/reject-request/${id}/`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
-            alert('❌ Request rejected'); loadDashboard();
-        }
-
-        document.getElementById('createGroupForm')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const token = getToken();
-            const response = await fetch(`${API_URL}/superadmin/create-group/`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ group_name: document.getElementById('groupName').value, description: document.getElementById('groupDesc').value, weekly_goal: document.getElementById('weeklyGoal').value, daily_contribution: document.getElementById('dailyContribution').value, max_members: document.getElementById('maxMembers').value })
-            });
-            const data = await response.json();
-            alert(`✅ ${data.message}\n📋 Group Code: ${data.group_code}`);
-            document.getElementById('createGroupForm').reset(); showSection('groups'); loadDashboard();
-        });
-
-        function showSection(section) {
-            ['dashboard', 'groups', 'requests', 'create'].forEach(s => document.getElementById(`${s}Section`).style.display = 'none');
-            document.getElementById(`${section}Section`).style.display = 'block';
-            document.querySelectorAll('.sidebar-nav-link').forEach(l => l.classList.remove('active'));
-            event.target.closest('.sidebar-nav-link').classList.add('active');
-        }
-
+        async function approveRequest(id) { const token = getToken(); await fetch(`${API_URL}/superadmin/approve-request/${id}/`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } }); alert('✅ Request approved!'); loadDashboard(); }
+        async function rejectRequest(id) { const token = getToken(); await fetch(`${API_URL}/superadmin/reject-request/${id}/`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } }); alert('❌ Request rejected'); loadDashboard(); }
+        document.getElementById('createGroupForm')?.addEventListener('submit', async (e) => { e.preventDefault(); const token = getToken(); const response = await fetch(`${API_URL}/superadmin/create-group/`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ group_name: document.getElementById('groupName').value, description: document.getElementById('groupDesc').value, weekly_goal: document.getElementById('weeklyGoal').value, daily_contribution: document.getElementById('dailyContribution').value, max_members: document.getElementById('maxMembers').value }) }); const data = await response.json(); alert(`✅ ${data.message}\n📋 Group Code: ${data.group_code}`); document.getElementById('createGroupForm').reset(); showSection('groups'); loadDashboard(); });
+        function showSection(section) { ['dashboard', 'groups', 'requests', 'create'].forEach(s => document.getElementById(`${s}Section`).style.display = 'none'); document.getElementById(`${section}Section`).style.display = 'block'; document.querySelectorAll('.sidebar-nav-link').forEach(l => l.classList.remove('active')); event.target.closest('.sidebar-nav-link').classList.add('active'); }
         function logout() { localStorage.removeItem('access_token'); window.location.href = 'login.html'; }
         loadDashboard(); setInterval(loadDashboard, 30000);
     </script>
