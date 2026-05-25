@@ -1,181 +1,180 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Group Admin - Marafiki Damu</title>
+    <title>Group Admin | Marafiki Damu</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', sans-serif;
+            background: #f0f2f5;
         }
         .sidebar {
-            background: rgba(0,0,0,0.3);
-            backdrop-filter: blur(10px);
+            background: linear-gradient(180deg, #0f2027 0%, #203a43 100%);
             min-height: 100vh;
             position: fixed;
-            width: 260px;
-            padding: 20px;
+            width: 280px;
+            padding: 1.5rem;
         }
-        .main-content {
-            margin-left: 260px;
-            padding: 30px;
-        }
-        .card-admin {
-            background: white;
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        .member-item {
-            background: white;
+        .sidebar .logo { text-align: center; margin-bottom: 2rem; }
+        .sidebar .logo-icon {
+            width: 50px; height: 50px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
             border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 10px;
+            display: inline-flex; align-items: center; justify-content: center;
         }
-        .btn-approve { background: #28a745; color: white; border: none; padding: 5px 15px; border-radius: 10px; }
-        .btn-reject { background: #dc3545; color: white; border: none; padding: 5px 15px; border-radius: 10px; }
+        .sidebar .logo-icon i { font-size: 1.5rem; color: white; }
+        .sidebar h5 { color: white; font-weight: 600; }
+        .sidebar p { color: rgba(255,255,255,0.5); font-size: 0.8rem; }
+        .sidebar-nav-link {
+            display: flex; align-items: center; padding: 0.75rem 1rem;
+            color: rgba(255,255,255,0.7); text-decoration: none; border-radius: 12px;
+            margin-bottom: 0.5rem; transition: all 0.3s;
+        }
+        .sidebar-nav-link:hover { background: rgba(255,255,255,0.1); color: white; transform: translateX(5px); }
+        .sidebar-nav-link.active { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+        .sidebar-nav-link i { width: 1.5rem; margin-right: 0.75rem; }
+        .main-content { margin-left: 280px; padding: 2rem; }
+        .stat-card {
+            background: white; border-radius: 1rem; padding: 1.25rem;
+            margin-bottom: 1.5rem; border: 1px solid #eef2f6; transition: all 0.3s;
+        }
+        .stat-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.08); }
+        .stat-icon {
+            width: 48px; height: 48px; background: rgba(67, 97, 238, 0.1);
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            margin-bottom: 1rem;
+        }
+        .stat-icon i { font-size: 1.5rem; color: #4361ee; }
+        .stat-value { font-size: 1.75rem; font-weight: 800; color: #1a2c3e; }
+        .stat-label { font-size: 0.8rem; color: #8a99b4; font-weight: 600; text-transform: uppercase; }
+        .glass-card {
+            background: white; border-radius: 1rem; padding: 1.5rem;
+            margin-bottom: 1.5rem; border: 1px solid #eef2f6;
+        }
+        .card-title { font-size: 1rem; font-weight: 700; color: #1a2c3e; margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between; }
+        .member-card {
+            background: #f8f9fa; border-radius: 1rem; padding: 1rem;
+            margin-bottom: 0.75rem; border-left: 3px solid #4361ee;
+        }
+        .btn-approve { background: #28a745; color: white; border: none; padding: 5px 15px; border-radius: 8px; font-size: 0.8rem; }
+        .btn-reject { background: #dc3545; color: white; border: none; padding: 5px 15px; border-radius: 8px; font-size: 0.8rem; }
+        @media (max-width: 768px) {
+            .sidebar { width: 80px; padding: 1rem; }
+            .sidebar span, .sidebar p, .sidebar h5 { display: none; }
+            .main-content { margin-left: 80px; padding: 1rem; }
+        }
     </style>
 </head>
 <body>
     <div class="sidebar">
-        <div class="text-center mb-4">
-            <i class="bi bi-shield-shield text-white" style="font-size: 2rem;"></i>
-            <h5 class="text-white mt-2">Group Admin</h5>
+        <div class="logo">
+            <div class="logo-icon"><i class="bi bi-shield-shield"></i></div>
+            <h5>Group Admin</h5>
+            <p id="groupNameDisplay">Loading...</p>
         </div>
-        <hr class="text-white-50">
-        <nav class="nav flex-column">
-            <a class="nav-link text-white" href="#" onclick="showSection('dashboard')">📊 Dashboard</a>
-            <a class="nav-link text-white" href="#" onclick="showSection('pending')">⏳ Pending Approvals</a>
-            <a class="nav-link text-white" href="#" onclick="showSection('members')">👥 All Members</a>
-            <hr class="text-white-50">
-            <a class="nav-link text-danger" href="#" onclick="logout()">🚪 Logout</a>
+        <nav>
+            <a href="#" class="sidebar-nav-link active" onclick="showSection('dashboard')"><i class="bi bi-speedometer2"></i> <span>Dashboard</span></a>
+            <a href="#" class="sidebar-nav-link" onclick="showSection('members')"><i class="bi bi-people"></i> <span>Members</span></a>
+            <a href="#" class="sidebar-nav-link" onclick="showSection('pending')"><i class="bi bi-clock-history"></i> <span>Pending Approvals</span></a>
+            <hr style="border-color: rgba(255,255,255,0.1); margin: 1rem 0;">
+            <a href="#" class="sidebar-nav-link text-danger" onclick="logout()"><i class="bi bi-box-arrow-right"></i> <span>Logout</span></a>
         </nav>
     </div>
 
     <div class="main-content">
         <div id="dashboardSection">
-            <h2 class="text-white mb-4">Group Dashboard</h2>
+            <h3 class="fw-bold mb-4">Group Admin Dashboard</h3>
             <div class="row" id="statsRow"></div>
-        </div>
-
-        <div id="pendingSection" style="display: none;">
-            <h2 class="text-white mb-4">Pending Approvals</h2>
-            <div id="pendingList"></div>
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="glass-card">
+                        <div class="card-title"><span><i class="bi bi-graph-up"></i> Weekly Collection</span></div>
+                        <canvas id="collectionChart" height="200"></canvas>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="glass-card">
+                        <div class="card-title"><span><i class="bi bi-trophy text-warning"></i> Top Contributors</span></div>
+                        <div id="topContributors"></div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div id="membersSection" style="display: none;">
-            <h2 class="text-white mb-4">All Members</h2>
+            <h3 class="fw-bold mb-4">All Members</h3>
             <div id="membersList"></div>
+        </div>
+
+        <div id="pendingSection" style="display: none;">
+            <h3 class="fw-bold mb-4">Pending Approvals</h3>
+            <div id="pendingList"></div>
         </div>
     </div>
 
     <script>
-        const API_URL = "https://marafiki-backend.onrender.com/api";
-        
+        const API_URL = 'https://marafiki-backend.onrender.com/api';
+        let collectionChart = null;
+
         function getToken() { return localStorage.getItem('access_token'); }
-        
+
         async function loadDashboard() {
             const token = getToken();
             if (!token) { window.location.href = 'login.html'; return; }
-            
             try {
                 const response = await fetch(`${API_URL}/group-admin/dashboard/`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await response.json();
-                
+                document.getElementById('groupNameDisplay').innerHTML = data.group.name;
+
                 document.getElementById('statsRow').innerHTML = `
-                    <div class="col-md-4">
-                        <div class="card-admin text-center">
-                            <h3>${data.statistics.approved_members}</h3>
-                            <p>Active Members</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card-admin text-center">
-                            <h3>${data.statistics.pending_members}</h3>
-                            <p>Pending Approval</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card-admin text-center">
-                            <h3>KES ${data.statistics.total_raised}</h3>
-                            <p>Total Raised</p>
-                        </div>
-                    </div>
+                    <div class="col-md-4"><div class="stat-card"><div class="stat-icon"><i class="bi bi-people"></i></div><div class="stat-value">${data.statistics.approved_members}</div><div class="stat-label">Active Members</div></div></div>
+                    <div class="col-md-4"><div class="stat-card"><div class="stat-icon"><i class="bi bi-hourglass-split"></i></div><div class="stat-value">${data.statistics.pending_members}</div><div class="stat-label">Pending Approval</div></div></div>
+                    <div class="col-md-4"><div class="stat-card"><div class="stat-icon"><i class="bi bi-coin"></i></div><div class="stat-value">KES ${data.statistics.total_raised.toFixed(0)}</div><div class="stat-label">Total Raised</div></div></div>
                 `;
-                
-                document.getElementById('pendingList').innerHTML = data.pending_members.map(m => `
-                    <div class="member-item">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <strong>${m.username}</strong><br>
-                                <small>${m.email} | ${m.phone}</small>
-                            </div>
-                            <div>
-                                <button class="btn-approve me-2" onclick="approveMember(${m.id})">Approve</button>
-                                <button class="btn-reject" onclick="rejectMember(${m.id})">Reject</button>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
-                
-                document.getElementById('membersList').innerHTML = data.members.map(m => `
-                    <div class="member-item">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <strong>#${m.member_number || 'Pending'} ${m.username}</strong><br>
-                                <small>${m.email}</small>
-                            </div>
-                            <div>
-                                <span class="badge ${m.status === 'approved' ? 'bg-success' : 'bg-warning'}">${m.status}</span>
-                                <br><small>KES ${m.total_contributed}</small>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
-                
-            } catch (error) {
-                console.error('Error:', error);
-            }
+
+                if (collectionChart) collectionChart.destroy();
+                const ctx = document.getElementById('collectionChart').getContext('2d');
+                collectionChart = new Chart(ctx, {
+                    type: 'bar', data: { labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'], datasets: [{ label: 'Collections (KES)', data: [2500, 3800, 4200, data.statistics.weekly_raised], backgroundColor: '#4361ee', borderRadius: 8 }] },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+
+                const topMembers = [...data.members].sort((a,b) => b.total_contributed - a.total_contributed).slice(0,5);
+                document.getElementById('topContributors').innerHTML = topMembers.map(m => `<div class="d-flex justify-content-between align-items-center mb-2"><div><i class="bi bi-person-circle"></i> ${m.username}</div><div><strong>KES ${m.total_contributed}</strong></div></div>`).join('');
+
+                document.getElementById('membersList').innerHTML = data.members.map(m => `<div class="member-card"><div class="d-flex justify-content-between align-items-center"><div><strong>#${m.member_number || 'Pending'} ${m.username}</strong><br><small>${m.email} | ${m.phone}</small></div><div><span class="badge ${m.status === 'approved' ? 'bg-success' : 'bg-warning'}">${m.status}</span><br><small>KES ${m.total_contributed}</small></div></div></div>`).join('');
+                document.getElementById('pendingList').innerHTML = data.pending_members.map(m => `<div class="member-card"><div class="d-flex justify-content-between align-items-center"><div><strong>${m.username}</strong><br><small>${m.email} | ${m.phone}</small></div><div><button class="btn-approve me-2" onclick="approveMember(${m.id})">Approve</button><button class="btn-reject" onclick="rejectMember(${m.id})">Reject</button></div></div></div>`).join('');
+            } catch (error) { console.error(error); }
         }
-        
+
         async function approveMember(id) {
             const token = getToken();
-            await fetch(`${API_URL}/group-admin/approve/${id}/`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            alert('Member approved!');
-            loadDashboard();
+            await fetch(`${API_URL}/group-admin/approve/${id}/`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
+            alert('✅ Member approved!'); loadDashboard();
         }
-        
         async function rejectMember(id) {
             const token = getToken();
-            await fetch(`${API_URL}/group-admin/reject/${id}/`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            alert('Member rejected');
-            loadDashboard();
+            await fetch(`${API_URL}/group-admin/reject/${id}/`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
+            alert('❌ Member rejected'); loadDashboard();
         }
-        
+
         function showSection(section) {
-            document.getElementById('dashboardSection').style.display = 'none';
-            document.getElementById('pendingSection').style.display = 'none';
-            document.getElementById('membersSection').style.display = 'none';
+            ['dashboard', 'members', 'pending'].forEach(s => document.getElementById(`${s}Section`).style.display = 'none');
             document.getElementById(`${section}Section`).style.display = 'block';
+            document.querySelectorAll('.sidebar-nav-link').forEach(l => l.classList.remove('active'));
+            event.target.closest('.sidebar-nav-link').classList.add('active');
         }
-        
-        function logout() {
-            localStorage.removeItem('access_token');
-            window.location.href = 'login.html';
-        }
-        
-        loadDashboard();
+
+        function logout() { localStorage.removeItem('access_token'); window.location.href = 'login.html'; }
+        loadDashboard(); setInterval(loadDashboard, 30000);
     </script>
 </body>
 </html>
