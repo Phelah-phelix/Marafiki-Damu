@@ -12,11 +12,8 @@ class ChamaGroup(models.Model):
     weekly_goal = models.DecimalField(max_digits=10, decimal_places=2, default=100)
     daily_contribution = models.DecimalField(max_digits=10, decimal_places=2, default=10)
     max_members = models.IntegerField(default=50, null=True, blank=True)
-    is_active = models.BooleanField(default=False)  # Needs Super Admin approval
-    is_approved = models.BooleanField(default=False)  # Super Admin approval flag
+    is_active = models.BooleanField(default=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_groups')
-    approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='approved_groups')
-    approved_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
     def save(self, *args, **kwargs):
@@ -27,28 +24,6 @@ class ChamaGroup(models.Model):
     def __str__(self):
         return f"{self.group_name} ({self.group_code})"
 
-class GroupCreationRequest(models.Model):
-    """When Admin requests to create a group"""
-    STATUS_CHOICES = [
-        ('pending', 'Pending Approval'),
-        ('approved', 'Approved'),
-        ('rejected', 'Rejected'),
-    ]
-    
-    requester = models.ForeignKey(User, on_delete=models.CASCADE, related_name='group_creation_requests')
-    group_name = models.CharField(max_length=100)
-    group_description = models.TextField(blank=True)
-    weekly_goal = models.DecimalField(max_digits=10, decimal_places=2, default=100)
-    daily_contribution = models.DecimalField(max_digits=10, decimal_places=2, default=10)
-    max_members = models.IntegerField(default=50)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_group_requests')
-    reviewed_at = models.DateTimeField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    
-    def __str__(self):
-        return f"{self.requester.username} - {self.group_name} - {self.status}"
-
 class GroupAdmin(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='group_admin_profile')
     managed_group = models.ForeignKey(ChamaGroup, on_delete=models.CASCADE, related_name='admins', null=True, blank=True)
@@ -56,7 +31,7 @@ class GroupAdmin(models.Model):
     assigned_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='assigned_admins')
     
     def __str__(self):
-        return f"Admin: {self.user.username} → {self.managed_group.group_name if self.managed_group else 'No Group'}"
+        return f"Admin: {self.user.username}"
 
 class Member(models.Model):
     STATUS_CHOICES = [
@@ -120,6 +95,31 @@ class WeeklyProgress(models.Model):
     class Meta:
         unique_together = ['member', 'week_start_date']
 
+class GroupCreationRequest(models.Model):
+    """Group creation request from Admin to Super Admin"""
+    STATUS_CHOICES = [
+        ('pending', 'Pending Approval'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+    
+    requester = models.ForeignKey(User, on_delete=models.CASCADE, related_name='group_creation_requests')
+    group_name = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
+    weekly_goal = models.DecimalField(max_digits=10, decimal_places=2, default=100)
+    daily_contribution = models.DecimalField(max_digits=10, decimal_places=2, default=10)
+    max_members = models.IntegerField(default=50)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    admin_notes = models.TextField(blank=True, null=True)
+    superadmin_notes = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_group_requests')
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    
+    def __str__(self):
+        return f"{self.requester.username} - {self.group_name} - {self.status}"
+
 class PasswordResetToken(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     token = models.CharField(max_length=100, unique=True)
@@ -146,29 +146,8 @@ class AI_Prediction(models.Model):
     confidence_score = models.FloatField()
     trend = models.CharField(max_length=20)
     recommendation = models.TextField()
-
-class GroupRequest(models.Model):
-    """Group creation request from Admin to Super Admin"""
-    STATUS_CHOICES = [
-        ('pending', 'Pending Approval'),
-        ('approved', 'Approved'),
-        ('rejected', 'Rejected'),
-        ('in_review', 'In Review'),
-    ]
     
-    requester = models.ForeignKey(User, on_delete=models.CASCADE, related_name='group_requests')
-    group_name = models.CharField(max_length=100)
-    description = models.TextField(blank=True, null=True)
-    weekly_goal = models.DecimalField(max_digits=10, decimal_places=2, default=100)
-    daily_contribution = models.DecimalField(max_digits=10, decimal_places=2, default=10)
-    max_members = models.IntegerField(default=50)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    admin_notes = models.TextField(blank=True, null=True)
-    superadmin_notes = models.TextField(blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_requests')
-    reviewed_at = models.DateTimeField(null=True, blank=True)
-    
-    def __str__(self):
-        return f"{self.requester.username} - {self.group_name} - {self.status}"
+    def save(self, *args, **kwargs):
+        if not self.group and self.member:
+            self.group = self.member.group
+        super().save(*args, **kwargs)

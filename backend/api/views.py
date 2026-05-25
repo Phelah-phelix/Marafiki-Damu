@@ -201,7 +201,7 @@ def superadmin_create_group(request):
 # Super Admin - Pending Group Requests
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def superadmin_get_pending_group_requests(request):
+def superadmin_get_pending_group_creation_requests(request):
     if not request.user.is_superuser:
         return Response({'error': 'Not authorized'}, status=403)
     return Response([])
@@ -351,3 +351,517 @@ def request_to_become_admin(request):
 @permission_classes([IsAuthenticated])
 def request_to_create_group(request):
     return Response({'message': 'Group creation request submitted'})
+
+# ==================== ADMIN: SEND REQUEST TO SUPER ADMIN ====================
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def admin_send_group_request(request):
+    """Admin sends a group creation request to Super Admin"""
+    # Check if user is admin
+    if not request.user.is_staff and not request.user.is_superuser:
+        return Response({'error': 'Only admins can request group creation'}, status=403)
+    
+    # Create the request
+    group_request = GroupCreationRequest.objects.create(
+        requester=request.user,
+        group_name=request.data.get('group_name'),
+        description=request.data.get('description', ''),
+        weekly_goal=request.data.get('weekly_goal', 100),
+        daily_contribution=request.data.get('daily_contribution', 10),
+        max_members=request.data.get('max_members', 50),
+        admin_notes=request.data.get('admin_notes', ''),
+        status='pending'
+    )
+    
+    return Response({
+        'message': f'✅ Request for "{group_request.group_name}" sent to Super Admin!',
+        'request_id': group_request.id,
+        'status': 'pending'
+    })
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def admin_get_my_requests(request):
+    """Admin views their own requests"""
+    if not request.user.is_staff and not request.user.is_superuser:
+        return Response({'error': 'Not authorized'}, status=403)
+    
+    requests = GroupCreationRequest.objects.filter(requester=request.user).order_by('-created_at')
+    data = []
+    for req in requests:
+        data.append({
+            'id': req.id,
+            'group_name': req.group_name,
+            'description': req.description,
+            'weekly_goal': float(req.weekly_goal),
+            'daily_contribution': float(req.daily_contribution),
+            'max_members': req.max_members,
+            'status': req.status,
+            'admin_notes': req.admin_notes,
+            'superadmin_notes': req.superadmin_notes,
+            'created_at': req.created_at.strftime('%Y-%m-%d %H:%M'),
+            'reviewed_at': req.reviewed_at.strftime('%Y-%m-%d %H:%M') if req.reviewed_at else None,
+        })
+    return Response(data)
+
+# ==================== SUPER ADMIN: VIEW AND APPROVE REQUESTS ====================
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def superadmin_get_pending_requests(request):
+    """Super Admin views all pending group creation requests"""
+    if not request.user.is_superuser:
+        return Response({'error': 'Not authorized'}, status=403)
+    
+    requests = GroupCreationRequest.objects.filter(status='pending').order_by('-created_at')
+    data = []
+    for req in requests:
+        data.append({
+            'id': req.id,
+            'requester': req.requester.username,
+            'requester_email': req.requester.email,
+            'group_name': req.group_name,
+            'description': req.description,
+            'weekly_goal': float(req.weekly_goal),
+            'daily_contribution': float(req.daily_contribution),
+            'max_members': req.max_members,
+            'admin_notes': req.admin_notes,
+            'created_at': req.created_at.strftime('%Y-%m-%d %H:%M'),
+        })
+    return Response(data)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def superadmin_approve_request(request, request_id):
+    """Super Admin approves a group creation request and creates the group"""
+    if not request.user.is_superuser:
+        return Response({'error': 'Not authorized'}, status=403)
+    
+    try:
+        group_request = GroupCreationRequest.objects.get(id=request_id, status='pending')
+    except GroupCreationRequest.DoesNotExist:
+        return Response({'error': 'Request not found'}, status=404)
+    
+    # Create the actual group
+    group = ChamaGroup.objects.create(
+        group_name=group_request.group_name,
+        description=group_request.description,
+        weekly_goal=group_request.weekly_goal,
+        daily_contribution=group_request.daily_contribution,
+        max_members=group_request.max_members,
+        is_active=True,
+        created_by=group_request.requester,
+        approved_by=request.user,
+        approved_at=timezone.now()
+    )
+    
+    # Update the request status
+    group_request.status = 'approved'
+    group_request.reviewed_by = request.user
+    group_request.reviewed_at = timezone.now()
+    group_request.superadmin_notes = request.data.get('notes', '')
+    group_request.save()
+    
+    # Assign the requester as admin of this group
+    admin_user = group_request.requester
+    admin_user.is_staff = True
+    admin_user.save()
+    
+    # Create GroupAdmin record
+    GroupAdmin.objects.get_or_create(
+        user=admin_user,
+        defaults={'managed_group': group, 'assigned_by': request.user}
+    )
+    
+    return Response({
+        'message': f'✅ Group "{group.group_name}" approved and created!',
+        'group_code': group.group_code,
+        'group_id': group.id
+    })
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def superadmin_reject_request(request, request_id):
+    """Super Admin rejects a group creation request"""
+    if not request.user.is_superuser:
+        return Response({'error': 'Not authorized'}, status=403)
+    
+    try:
+        group_request = GroupCreationRequest.objects.get(id=request_id, status='pending')
+    except GroupCreationRequest.DoesNotExist:
+        return Response({'error': 'Request not found'}, status=404)
+    
+    group_request.status = 'rejected'
+    group_request.reviewed_by = request.user
+    group_request.reviewed_at = timezone.now()
+    group_request.superadmin_notes = request.data.get('notes', '')
+    group_request.save()
+    
+    return Response({'message': f'❌ Request for "{group_request.group_name}" rejected.'})
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def admin_send_group_request(request):
+    """Admin sends a group creation request to Super Admin"""
+    if not request.user.is_staff and not request.user.is_superuser:
+        return Response({'error': 'Only admins can request group creation'}, status=403)
+    
+    group_request = GroupCreationRequest.objects.create(
+        requester=request.user,
+        group_name=request.data.get('group_name'),
+        description=request.data.get('description', ''),
+        weekly_goal=request.data.get('weekly_goal', 100),
+        daily_contribution=request.data.get('daily_contribution', 10),
+        max_members=request.data.get('max_members', 50),
+        admin_notes=request.data.get('admin_notes', ''),
+        status='pending'
+    )
+    
+    return Response({
+        'message': f'Request for "{group_request.group_name}" sent to Super Admin!',
+        'request_id': group_request.id
+    })
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def admin_get_my_requests(request):
+    """Admin views their own requests"""
+    if not request.user.is_staff and not request.user.is_superuser:
+        return Response({'error': 'Not authorized'}, status=403)
+    
+    requests = GroupCreationRequest.objects.filter(requester=request.user).order_by('-created_at')
+    data = [{
+        'id': r.id,
+        'group_name': r.group_name,
+        'weekly_goal': float(r.weekly_goal),
+        'daily_contribution': float(r.daily_contribution),
+        'status': r.status,
+        'created_at': r.created_at.strftime('%Y-%m-%d %H:%M')
+    } for r in requests]
+    return Response(data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def superadmin_get_pending_requests(request):
+    """Super Admin views pending requests"""
+    if not request.user.is_superuser:
+        return Response({'error': 'Not authorized'}, status=403)
+    
+    requests = GroupCreationRequest.objects.filter(status='pending').order_by('-created_at')
+    data = [{
+        'id': r.id,
+        'requester': r.requester.username,
+        'requester_email': r.requester.email,
+        'group_name': r.group_name,
+        'weekly_goal': float(r.weekly_goal),
+        'daily_contribution': float(r.daily_contribution),
+        'admin_notes': r.admin_notes,
+        'created_at': r.created_at.strftime('%Y-%m-%d %H:%M')
+    } for r in requests]
+    return Response(data)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def superadmin_approve_request(request, request_id):
+    """Super Admin approves a request"""
+    if not request.user.is_superuser:
+        return Response({'error': 'Not authorized'}, status=403)
+    
+    try:
+        group_request = GroupCreationRequest.objects.get(id=request_id, status='pending')
+    except GroupCreationRequest.DoesNotExist:
+        return Response({'error': 'Request not found'}, status=404)
+    
+    group_request.status = 'approved'
+    group_request.reviewed_by = request.user
+    group_request.reviewed_at = timezone.now()
+    group_request.superadmin_notes = request.data.get('notes', '')
+    group_request.save()
+    
+    return Response({'message': f'Request for "{group_request.group_name}" approved!'})
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def superadmin_reject_request(request, request_id):
+    """Super Admin rejects a request"""
+    if not request.user.is_superuser:
+        return Response({'error': 'Not authorized'}, status=403)
+    
+    try:
+        group_request = GroupCreationRequest.objects.get(id=request_id, status='pending')
+    except GroupCreationRequest.DoesNotExist:
+        return Response({'error': 'Request not found'}, status=404)
+    
+    group_request.status = 'rejected'
+    group_request.reviewed_by = request.user
+    group_request.reviewed_at = timezone.now()
+    group_request.superadmin_notes = request.data.get('notes', '')
+    group_request.save()
+    
+    return Response({'message': f'Request for "{group_request.group_name}" rejected!'})
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def admin_send_group_request(request):
+    """Admin sends a group creation request to Super Admin"""
+    if not request.user.is_staff and not request.user.is_superuser:
+        return Response({'error': 'Only admins can request group creation'}, status=403)
+    
+    group_request = GroupCreationRequest.objects.create(
+        requester=request.user,
+        group_name=request.data.get('group_name'),
+        description=request.data.get('description', ''),
+        weekly_goal=request.data.get('weekly_goal', 100),
+        daily_contribution=request.data.get('daily_contribution', 10),
+        max_members=request.data.get('max_members', 50),
+        admin_notes=request.data.get('admin_notes', ''),
+        status='pending'
+    )
+    
+    return Response({
+        'message': f'Request for "{group_request.group_name}" sent to Super Admin!',
+        'request_id': group_request.id
+    })
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def admin_get_my_requests(request):
+    """Admin views their own requests"""
+    if not request.user.is_staff and not request.user.is_superuser:
+        return Response({'error': 'Not authorized'}, status=403)
+    
+    requests = GroupCreationRequest.objects.filter(requester=request.user).order_by('-created_at')
+    data = [{
+        'id': r.id,
+        'group_name': r.group_name,
+        'weekly_goal': float(r.weekly_goal),
+        'daily_contribution': float(r.daily_contribution),
+        'status': r.status,
+        'created_at': r.created_at.strftime('%Y-%m-%d %H:%M')
+    } for r in requests]
+    return Response(data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def superadmin_get_pending_requests(request):
+    """Super Admin views pending requests"""
+    if not request.user.is_superuser:
+        return Response({'error': 'Not authorized'}, status=403)
+    
+    requests = GroupCreationRequest.objects.filter(status='pending').order_by('-created_at')
+    data = [{
+        'id': r.id,
+        'requester': r.requester.username,
+        'requester_email': r.requester.email,
+        'group_name': r.group_name,
+        'weekly_goal': float(r.weekly_goal),
+        'daily_contribution': float(r.daily_contribution),
+        'admin_notes': r.admin_notes,
+        'created_at': r.created_at.strftime('%Y-%m-%d %H:%M')
+    } for r in requests]
+    return Response(data)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def superadmin_approve_request(request, request_id):
+    """Super Admin approves a request"""
+    if not request.user.is_superuser:
+        return Response({'error': 'Not authorized'}, status=403)
+    
+    try:
+        group_request = GroupCreationRequest.objects.get(id=request_id, status='pending')
+    except GroupCreationRequest.DoesNotExist:
+        return Response({'error': 'Request not found'}, status=404)
+    
+    group_request.status = 'approved'
+    group_request.reviewed_by = request.user
+    group_request.reviewed_at = timezone.now()
+    group_request.superadmin_notes = request.data.get('notes', '')
+    group_request.save()
+    
+    return Response({'message': f'Request for "{group_request.group_name}" approved!'})
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def superadmin_reject_request(request, request_id):
+    """Super Admin rejects a request"""
+    if not request.user.is_superuser:
+        return Response({'error': 'Not authorized'}, status=403)
+    
+    try:
+        group_request = GroupCreationRequest.objects.get(id=request_id, status='pending')
+    except GroupCreationRequest.DoesNotExist:
+        return Response({'error': 'Request not found'}, status=404)
+    
+    group_request.status = 'rejected'
+    group_request.reviewed_by = request.user
+    group_request.reviewed_at = timezone.now()
+    group_request.superadmin_notes = request.data.get('notes', '')
+    group_request.save()
+    
+    return Response({'message': f'Request for "{group_request.group_name}" rejected!'})
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def admin_send_group_request(request):
+    """Admin sends a group creation request to Super Admin"""
+    # Check if user is admin (staff or has member profile with is_group_admin)
+    is_admin = False
+    if request.user.is_staff or request.user.is_superuser:
+        is_admin = True
+    else:
+        try:
+            member = Member.objects.get(user=request.user)
+            if member.is_group_admin:
+                is_admin = True
+        except Member.DoesNotExist:
+            pass
+    
+    if not is_admin:
+        return Response({'error': 'Only admins can request group creation'}, status=403)
+    
+    # Create the request
+    group_request = GroupCreationRequest.objects.create(
+        requester=request.user,
+        group_name=request.data.get('group_name'),
+        description=request.data.get('description', ''),
+        weekly_goal=request.data.get('weekly_goal', 100),
+        daily_contribution=request.data.get('daily_contribution', 10),
+        max_members=request.data.get('max_members', 50),
+        admin_notes=request.data.get('admin_notes', ''),
+        status='pending'
+    )
+    
+    return Response({
+        'message': f'Request for "{group_request.group_name}" sent to Super Admin!',
+        'request_id': group_request.id,
+        'status': 'pending'
+    })
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def admin_get_my_requests(request):
+    """Admin views their own requests"""
+    # Check if user is admin
+    is_admin = False
+    if request.user.is_staff or request.user.is_superuser:
+        is_admin = True
+    else:
+        try:
+            member = Member.objects.get(user=request.user)
+            if member.is_group_admin:
+                is_admin = True
+        except Member.DoesNotExist:
+            pass
+    
+    if not is_admin:
+        return Response({'error': 'Not authorized'}, status=403)
+    
+    requests = GroupCreationRequest.objects.filter(requester=request.user).order_by('-created_at')
+    data = []
+    for r in requests:
+        data.append({
+            'id': r.id,
+            'group_name': r.group_name,
+            'description': r.description,
+            'weekly_goal': float(r.weekly_goal),
+            'daily_contribution': float(r.daily_contribution),
+            'max_members': r.max_members,
+            'status': r.status,
+            'admin_notes': r.admin_notes,
+            'superadmin_notes': r.superadmin_notes,
+            'created_at': r.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+        })
+    return Response(data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def superadmin_get_pending_requests(request):
+    """Super Admin views pending requests"""
+    # Check if user is superadmin
+    if not request.user.is_superuser:
+        return Response({'error': 'Not authorized. Super admin access required.'}, status=403)
+    
+    requests = GroupCreationRequest.objects.filter(status='pending').order_by('-created_at')
+    data = []
+    for r in requests:
+        data.append({
+            'id': r.id,
+            'requester': r.requester.username,
+            'requester_email': r.requester.email,
+            'group_name': r.group_name,
+            'description': r.description,
+            'weekly_goal': float(r.weekly_goal),
+            'daily_contribution': float(r.daily_contribution),
+            'max_members': r.max_members,
+            'admin_notes': r.admin_notes,
+            'created_at': r.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+        })
+    return Response(data)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def superadmin_approve_request(request, request_id):
+    """Super Admin approves a request"""
+    if not request.user.is_superuser:
+        return Response({'error': 'Not authorized'}, status=403)
+    
+    try:
+        group_request = GroupCreationRequest.objects.get(id=request_id, status='pending')
+    except GroupCreationRequest.DoesNotExist:
+        return Response({'error': 'Request not found'}, status=404)
+    
+    # Create the actual group
+    group = ChamaGroup.objects.create(
+        group_name=group_request.group_name,
+        description=group_request.description,
+        weekly_goal=group_request.weekly_goal,
+        daily_contribution=group_request.daily_contribution,
+        max_members=group_request.max_members,
+        is_active=True,
+        created_by=group_request.requester
+    )
+    
+    # Update request status
+    group_request.status = 'approved'
+    group_request.reviewed_by = request.user
+    group_request.reviewed_at = timezone.now()
+    group_request.superadmin_notes = request.data.get('notes', '')
+    group_request.save()
+    
+    # Make the requester an admin
+    admin_user = group_request.requester
+    admin_user.is_staff = True
+    admin_user.save()
+    
+    # Create GroupAdmin record
+    GroupAdmin.objects.create(
+        user=admin_user,
+        managed_group=group,
+        assigned_by=request.user
+    )
+    
+    return Response({
+        'message': f'Group "{group.group_name}" approved!',
+        'group_code': group.group_code,
+        'group_id': group.id
+    })
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def superadmin_reject_request(request, request_id):
+    """Super Admin rejects a request"""
+    if not request.user.is_superuser:
+        return Response({'error': 'Not authorized'}, status=403)
+    
+    try:
+        group_request = GroupCreationRequest.objects.get(id=request_id, status='pending')
+    except GroupCreationRequest.DoesNotExist:
+        return Response({'error': 'Request not found'}, status=404)
+    
+    group_request.status = 'rejected'
+    group_request.reviewed_by = request.user
+    group_request.reviewed_at = timezone.now()
+    group_request.superadmin_notes = request.data.get('notes', '')
+    group_request.save()
+    
+    return Response({'message': f'Request for "{group_request.group_name}" rejected.'})

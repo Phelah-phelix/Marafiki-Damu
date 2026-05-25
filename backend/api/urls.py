@@ -17,17 +17,17 @@ urlpatterns = [
     # Super Admin endpoints
     path('superadmin/groups/', views.superadmin_get_all_groups, name='superadmin-groups'),
     path('superadmin/create-group/', views.superadmin_create_group, name='superadmin-create-group'),
-    path('superadmin/pending-group-requests/', views.superadmin_get_pending_group_requests, name='superadmin-pending-group-requests'),
-    path('superadmin/approve-group-request/<int:request_id>/', views.superadmin_approve_group_request, name='superadmin-approve-group-request'),
-    path('superadmin/reject-group-request/<int:request_id>/', views.superadmin_reject_group_request, name='superadmin-reject-group-request'),
+    path('superadmin/pending-requests/', views.superadmin_get_pending_requests, name='superadmin-pending-requests'),
+    path('superadmin/approve-request/<int:request_id>/', views.superadmin_approve_request, name='superadmin-approve-request'),
+    path('superadmin/reject-request/<int:request_id>/', views.superadmin_reject_request, name='superadmin-reject-request'),
     
     # Group Admin endpoints
     path('group-admin/dashboard/', views.group_admin_dashboard, name='group-admin-dashboard'),
     path('group-admin/approve/<int:member_id>/', views.group_admin_approve_member, name='group-admin-approve'),
     path('group-admin/reject/<int:member_id>/', views.group_admin_reject_member, name='group-admin-reject'),
     
-    # Admin request endpoints
-    path('admin/request-create-group/', views.admin_request_create_group, name='admin-request-create-group'),
+    # Admin: Send requests to Super Admin
+    path('admin/send-group-request/', views.admin_send_group_request, name='admin-send-group-request'),
     path('admin/my-requests/', views.admin_get_my_requests, name='admin-my-requests'),
     
     # User endpoints
