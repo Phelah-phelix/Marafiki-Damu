@@ -27,8 +27,7 @@ class ChamaGroup(models.Model):
 class GroupAdmin(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='group_admin_profile')
     managed_group = models.ForeignKey(ChamaGroup, on_delete=models.CASCADE, related_name='admins', null=True, blank=True)
-    assigned_at = models.DateTimeField(auto_now_add=True)
-    assigned_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='assigned_admins')
+    created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
         return f"Admin: {self.user.username}"
@@ -38,20 +37,13 @@ class Member(models.Model):
         ('pending', 'Pending Approval'),
         ('approved', 'Active'),
         ('suspended', 'Suspended'),
-        ('rejected', 'Rejected'),
     ]
     
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='member_profile')
     group = models.ForeignKey(ChamaGroup, on_delete=models.CASCADE, related_name='members', null=True, blank=True)
     member_number = models.IntegerField(null=True, blank=True)
     phone_number = models.CharField(max_length=15)
-    id_number = models.CharField(max_length=20, blank=True)
-    location = models.CharField(max_length=100, blank=True)
-    occupation = models.CharField(max_length=100, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    is_group_admin = models.BooleanField(default=False)
-    approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='approved_members')
-    approved_at = models.DateTimeField(null=True, blank=True)
     total_contributed = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     joined_at = models.DateTimeField(auto_now_add=True)
     
@@ -59,7 +51,6 @@ class Member(models.Model):
         if self.status == 'approved' and self.member_number is None and self.group:
             last_member = Member.objects.filter(group=self.group, status='approved').order_by('-member_number').first()
             self.member_number = (last_member.member_number + 1) if last_member else 1
-            self.approved_at = timezone.now()
         super().save(*args, **kwargs)
     
     def __str__(self):
@@ -71,8 +62,6 @@ class Contribution(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     date = models.DateField(default=timezone.now)
     transaction_id = models.CharField(max_length=100, unique=True)
-    payment_method = models.CharField(max_length=50, default='M-Pesa')
-    is_verified = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
     def save(self, *args, **kwargs):
@@ -94,31 +83,6 @@ class WeeklyProgress(models.Model):
     
     class Meta:
         unique_together = ['member', 'week_start_date']
-
-class GroupCreationRequest(models.Model):
-    """Group creation request from Admin to Super Admin"""
-    STATUS_CHOICES = [
-        ('pending', 'Pending Approval'),
-        ('approved', 'Approved'),
-        ('rejected', 'Rejected'),
-    ]
-    
-    requester = models.ForeignKey(User, on_delete=models.CASCADE, related_name='group_creation_requests')
-    group_name = models.CharField(max_length=100)
-    description = models.TextField(blank=True, null=True)
-    weekly_goal = models.DecimalField(max_digits=10, decimal_places=2, default=100)
-    daily_contribution = models.DecimalField(max_digits=10, decimal_places=2, default=10)
-    max_members = models.IntegerField(default=50)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    admin_notes = models.TextField(blank=True, null=True)
-    superadmin_notes = models.TextField(blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_group_requests')
-    reviewed_at = models.DateTimeField(null=True, blank=True)
-    
-    def __str__(self):
-        return f"{self.requester.username} - {self.group_name} - {self.status}"
 
 class PasswordResetToken(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -146,8 +110,3 @@ class AI_Prediction(models.Model):
     confidence_score = models.FloatField()
     trend = models.CharField(max_length=20)
     recommendation = models.TextField()
-    
-    def save(self, *args, **kwargs):
-        if not self.group and self.member:
-            self.group = self.member.group
-        super().save(*args, **kwargs)

@@ -5,19 +5,20 @@ urlpatterns = [
     path('health/', views.health_check, name='health'),
     path('register/', views.register_user, name='register'),
     path('login/', views.login_user, name='login'),
+    path('forgot-password/', views.forgot_password, name='forgot-password'),
+    path('reset-password/', views.reset_password, name='reset-password'),
     
-    # Super Admin
-    path('superadmin/groups/', views.superadmin_get_all_groups, name='superadmin-groups'),
-    path('superadmin/pending-requests/', views.superadmin_get_pending_requests, name='superadmin-pending-requests'),
-    path('superadmin/approve-request/<int:request_id>/', views.superadmin_approve_request, name='superadmin-approve-request'),
-    path('superadmin/reject-request/<int:request_id>/', views.superadmin_reject_request, name='superadmin-reject-request'),
+    # Groups
+    path('create-group/', views.create_group, name='create-group'),
+    path('my-groups/', views.my_groups, name='my-groups'),
+    path('group/<int:group_id>/', views.get_group_detail, name='group-detail'),
     
-    # Admin
-    path('admin/dashboard/', views.admin_dashboard, name='admin-dashboard'),
-    path('admin/send-request/', views.admin_send_request, name='admin-send-request'),
-    path('admin/my-requests/', views.admin_my_requests, name='admin-my-requests'),
+    # Members
+    path('approve-member/<int:member_id>/', views.approve_member, name='approve-member'),
+    path('reject-member/<int:member_id>/', views.reject_member, name='reject-member'),
     
-    # User
-    path('dashboard/', views.user_dashboard, name='user-dashboard'),
+    # Contributions
     path('contribute/', views.add_contribution, name='contribute'),
+    path('dashboard/', views.user_dashboard, name='dashboard'),
+    path('mpesa-payment/', views.mpesa_payment, name='mpesa-payment'),
 ]
