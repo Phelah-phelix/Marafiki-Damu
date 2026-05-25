@@ -23,3 +23,11 @@ urlpatterns = [
     path('contribute/', views.add_contribution, name='contribute'),
     path('mpesa-payment/', views.mpesa_payment, name='mpesa-payment'),
 ]
+    # Admin: Group Creation Requests
+    path('admin/request-create-group/', views.admin_request_create_group, name='admin-request-create-group'),
+    path('admin/my-requests/', views.admin_get_my_requests, name='admin-my-requests'),
+    
+    # Super Admin: Approve Group Creation
+    path('superadmin/pending-group-requests/', views.superadmin_get_pending_group_requests, name='superadmin-pending-group-requests'),
+    path('superadmin/approve-group-request/<int:request_id>/', views.superadmin_approve_group_request, name='superadmin-approve-group-request'),
+    path('superadmin/reject-group-request/<int:request_id>/', views.superadmin_reject_group_request, name='superadmin-reject-group-request'),
