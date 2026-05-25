@@ -434,6 +434,70 @@ def group_admin_get_my_groups(request):
         })
     return Response(data)
 
+    # ==================== PASSWORD RESET FUNCTIONS ====================
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def forgot_password(request):
+    """Send password reset email with token"""
+    email = request.data.get('email')
+    
+    if not email:
+        return Response({'error': 'Email is required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        user = User.objects.get(email=email)
+    except User.DoesNotExist:
+        # For security, don't reveal if email exists or not
+        return Response({'message': 'If an account with that email exists, a password reset link has been sent.'})
+    
+    # Delete old tokens
+    PasswordResetToken.objects.filter(user=user, is_used=False).delete()
+    
+    # Create new token
+    reset_token = PasswordResetToken.objects.create(user=user)
+    
+    # Send email (you'll need to configure email settings)
+    reset_link = f"https://marafiki-damu.vercel.app/reset-password.html?token={reset_token.token}"
+    
+    # For now, return the token in response (for testing)
+    # In production, send email and don't return token
+    return Response({
+        'message': 'Password reset link sent to your email',
+        'token': reset_token.token  # Remove this in production
+    })
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def reset_password(request):
+    """Reset password using token"""
+    token = request.data.get('token')
+    new_password = request.data.get('new_password')
+    
+    if not token or not new_password:
+        return Response({'error': 'Token and new password are required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    if len(new_password) < 8:
+        return Response({'error': 'Password must be at least 8 characters'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        reset_token = PasswordResetToken.objects.get(token=token, is_used=False)
+    except PasswordResetToken.DoesNotExist:
+        return Response({'error': 'Invalid or expired token'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    if not reset_token.is_valid():
+        return Response({'error': 'Token has expired'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    user = reset_token.user
+    user.set_password(new_password)
+    user.save()
+    
+    reset_token.is_used = True
+    reset_token.save()
+    
+    return Response({'message': 'Password reset successful'})
+
 
 # ==================== REGULAR USER VIEWS ====================
 
