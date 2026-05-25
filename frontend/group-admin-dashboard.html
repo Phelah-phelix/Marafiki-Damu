@@ -3,90 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard | Marafiki Damu</title>
+    <title>Admin Dashboard - Marafiki Damu</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #f5f7fa; }
-        .top-nav { background: #1a1a2e; padding: 0 24px; height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-        .logo { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 18px; color: white; }
-        .logo i { color: #e74c3c; }
-        .sidebar { position: fixed; top: 64px; left: 0; width: 260px; height: calc(100vh - 64px); background: white; border-right: 1px solid #e0e0e0; padding: 24px 16px; }
-        .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 16px; margin-bottom: 4px; border-radius: 8px; color: #555; text-decoration: none; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
-        .nav-item:hover { background: #f0f0f0; transform: translateX(5px); }
-        .nav-item.active { background: #1a1a2e; color: white; }
-        .nav-item i { width: 20px; }
-        .main-content { margin-left: 260px; padding: 32px; margin-top: 64px; }
-        .request-card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 16px; border-left: 4px solid #f39c12; transition: all 0.2s; }
-        .request-card:hover { transform: translateX(5px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .request-status { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-        .status-pending { background: #f39c12; color: white; }
-        .status-approved { background: #27ae60; color: white; }
-        .status-rejected { background: #e74c3c; color: white; }
-        .status-review { background: #3498db; color: white; }
-        .btn-submit { background: linear-gradient(135deg, #27ae60, #2ecc71); border: none; padding: 12px 24px; border-radius: 8px; color: white; font-weight: 600; width: 100%; cursor: pointer; transition: all 0.2s; }
-        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(39,174,96,0.3); }
-        .form-control { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 16px; }
-        .notification-badge { position: absolute; top: -5px; right: -5px; background: #e74c3c; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center; }
-        @media (max-width: 768px) { .sidebar { display: none; } .main-content { margin-left: 0; } }
+        body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
+        .navbar { background: #1a1a2e; color: white; padding: 15px 20px; }
+        .sidebar { position: fixed; left: 0; top: 60px; width: 250px; background: white; height: 100%; padding: 20px; box-shadow: 2px 0 5px rgba(0,0,0,0.1); }
+        .sidebar a { display: block; padding: 12px; color: #333; text-decoration: none; margin-bottom: 5px; border-radius: 8px; transition: all 0.3s; }
+        .sidebar a:hover { background: #e0e0e0; transform: translateX(5px); }
+        .sidebar a.active { background: #1a1a2e; color: white; }
+        .content { margin-left: 270px; padding: 20px; margin-top: 20px; }
+        .card { background: white; border-radius: 12px; padding: 25px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .btn-primary { background: #1a1a2e; border: none; padding: 10px 20px; border-radius: 8px; }
+        .btn-primary:hover { background: #16213e; }
+        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .status-pending { background: #ffc107; color: #000; }
+        .status-approved { background: #28a745; color: white; }
+        .status-rejected { background: #dc3545; color: white; }
+        .request-card { border: 1px solid #e0e0e0; border-radius: 10px; padding: 15px; margin-bottom: 15px; border-left: 4px solid #ffc107; }
+        .request-card.approved { border-left-color: #28a745; }
+        .request-card.rejected { border-left-color: #dc3545; }
+        .form-control:focus { border-color: #1a1a2e; box-shadow: none; }
     </style>
 </head>
 <body>
-    <div class="top-nav">
-        <div class="logo"><i class="bi bi-heart-fill"></i> <span>Marafiki Damu</span></div>
-        <div class="d-flex align-items-center gap-3">
-            <div style="position: relative;">
-                <i class="bi bi-bell" style="color: white; font-size: 20px; cursor: pointer;" onclick="checkNotifications()"></i>
-                <span class="notification-badge" id="notificationBadge">0</span>
-            </div>
-            <div><span style="color: white;" id="adminName">Admin</span></div>
-        </div>
+    <div class="navbar">
+        <div><i class="bi bi-heart-fill text-danger"></i> Marafiki Damu - Admin Panel</div>
+        <div><span id="adminName">Admin</span> | <a href="#" onclick="logout()" style="color: white;">Logout</a></div>
     </div>
     
     <div class="sidebar">
-        <div class="nav-item active" onclick="showSection('dashboard')"><i class="bi bi-speedometer2"></i> Dashboard</div>
-        <div class="nav-item" onclick="showSection('createGroup')"><i class="bi bi-plus-circle"></i> Request Group</div>
-        <div class="nav-item" onclick="showSection('myRequests')"><i class="bi bi-clock-history"></i> My Requests</div>
-        <div class="nav-item" onclick="showSection('members')"><i class="bi bi-people"></i> Members</div>
-        <div class="nav-item" onclick="showSection('pending')"><i class="bi bi-clock"></i> Pending Approvals</div>
-        <div style="margin-top: auto; padding-top: 40px;"><div class="nav-item" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Logout</div></div>
+        <a href="#" class="active" onclick="showSection('dashboard')"><i class="bi bi-speedometer2"></i> Dashboard</a>
+        <a href="#" onclick="showSection('createGroup')"><i class="bi bi-plus-circle"></i> Request Group</a>
+        <a href="#" onclick="showSection('myRequests')"><i class="bi bi-clock-history"></i> My Requests</a>
+        <a href="#" onclick="showSection('members')"><i class="bi bi-people"></i> Members</a>
+        <hr>
+        <a href="#" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Logout</a>
     </div>
     
-    <div class="main-content">
+    <div class="content">
+        <!-- Dashboard Section -->
         <div id="dashboardSection">
-            <h2 class="mb-4">Admin Dashboard</h2>
+            <h2>Admin Dashboard</h2>
             <div id="groupInfo"></div>
-            <div class="row" id="statsRow"></div>
-            <div class="card mt-4"><div class="card-header">Weekly Collections</div><div class="card-body"><canvas id="collectionsChart" height="250"></canvas></div></div>
         </div>
         
+        <!-- Create Group Request Section -->
         <div id="createGroupSection" style="display: none;">
-            <h2 class="mb-4">Request New Group</h2>
-            <div class="card p-4">
+            <div class="card">
+                <h3><i class="bi bi-send"></i> Request New Group</h3>
+                <p class="text-muted">Submit a request to Super Admin to create a new chama group</p>
+                <hr>
                 <form id="requestForm">
-                    <div class="mb-3"><label class="form-label fw-bold">Group Name *</label><input type="text" id="groupName" class="form-control" required placeholder="e.g., Youth Savings Chama"></div>
-                    <div class="mb-3"><label class="form-label fw-bold">Description</label><textarea id="description" class="form-control" rows="3" placeholder="Describe the group's purpose..."></textarea></div>
-                    <div class="row">
-                        <div class="col-md-4 mb-3"><label class="form-label fw-bold">Weekly Goal (KES)</label><input type="number" id="weeklyGoal" class="form-control" value="100"></div>
-                        <div class="col-md-4 mb-3"><label class="form-label fw-bold">Daily Contribution (KES)</label><input type="number" id="dailyContribution" class="form-control" value="10"></div>
-                        <div class="col-md-4 mb-3"><label class="form-label fw-bold">Max Members</label><input type="number" id="maxMembers" class="form-control" value="50"></div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Group Name *</label>
+                        <input type="text" id="groupName" class="form-control" placeholder="e.g., Youth Empowerment Chama" required>
                     </div>
-                    <div class="mb-3"><label class="form-label fw-bold">Notes for Super Admin</label><textarea id="adminNotes" class="form-control" rows="2" placeholder="Any additional information for the Super Admin..."></textarea></div>
-                    <button type="submit" class="btn-submit"><i class="bi bi-send"></i> Submit Request to Super Admin</button>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Description</label>
+                        <textarea id="description" class="form-control" rows="3" placeholder="Describe the purpose of this group..."></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Weekly Goal (KES)</label>
+                            <input type="number" id="weeklyGoal" class="form-control" value="100">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Daily Contribution (KES)</label>
+                            <input type="number" id="dailyContribution" class="form-control" value="10">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Max Members</label>
+                            <input type="number" id="maxMembers" class="form-control" value="50">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Notes for Super Admin</label>
+                        <textarea id="adminNotes" class="form-control" rows="2" placeholder="Any additional information for the Super Admin..."></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary btn" id="submitBtn">
+                        <i class="bi bi-send"></i> Send Request to Super Admin
+                    </button>
                 </form>
             </div>
         </div>
         
+        <!-- My Requests Section -->
         <div id="myRequestsSection" style="display: none;">
-            <h2 class="mb-4">My Group Creation Requests</h2>
+            <h3>My Group Creation Requests</h3>
             <div id="requestsList"></div>
         </div>
         
-        <div id="membersSection" style="display: none;"><div class="card"><div class="card-header">Members List</div><div class="card-body" id="membersList"></div></div></div>
-        <div id="pendingSection" style="display: none;"><div class="card"><div class="card-header">Pending Approvals</div><div class="card-body" id="pendingList"></div></div></div>
+        <!-- Members Section -->
+        <div id="membersSection" style="display: none;">
+            <h3>Group Members</h3>
+            <div id="membersList"></div>
+        </div>
     </div>
 
     <script>
@@ -97,52 +110,43 @@
         async function loadDashboard() {
             const token = getToken();
             if (!token) { window.location.href = 'login.html'; return; }
+            
             try {
-                const res = await fetch(`${API_URL}/group-admin/dashboard/`, { headers: { 'Authorization': `Bearer ${token}` } });
-                if (res.status === 401) { localStorage.removeItem('access_token'); window.location.href = 'login.html'; return; }
+                const res = await fetch(`${API_URL}/group-admin/dashboard/`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
                 const data = await res.json();
                 
                 if (data.group) {
-                    document.getElementById('groupInfo').innerHTML = `<div class="alert alert-success">✅ Your Group: <strong>${data.group.name}</strong> | Invite Code: <code>${data.group.code}</code> | Weekly Goal: KES ${data.group.weekly_goal}</div>`;
-                    document.getElementById('statsRow').innerHTML = `
-                        <div class="col-md-4"><div class="card text-center p-3"><h3>${data.statistics.approved_members}</h3><p>Active Members</p></div></div>
-                        <div class="col-md-4"><div class="card text-center p-3"><h3>${data.statistics.pending_members}</h3><p>Pending Approval</p></div></div>
-                        <div class="col-md-4"><div class="card text-center p-3"><h3>KES ${data.statistics.total_raised}</h3><p>Total Raised</p></div></div>
+                    document.getElementById('groupInfo').innerHTML = `
+                        <div class="card">
+                            <h4><i class="bi bi-building"></i> ${data.group.name}</h4>
+                            <p><strong>Invite Code:</strong> <code class="bg-light p-2">${data.group.code}</code></p>
+                            <p><strong>Weekly Goal:</strong> KES ${data.group.weekly_goal}</p>
+                            <p><strong>Active Members:</strong> ${data.statistics.approved_members}</p>
+                            <p><strong>Total Raised:</strong> KES ${data.statistics.total_raised}</p>
+                        </div>
                     `;
-                    document.getElementById('membersList').innerHTML = data.members.map(m => `<div class="border-bottom py-2"><strong>#${m.member_number || 'Pending'} ${m.username}</strong><br><small>${m.email}</small><span class="float-end">KES ${m.total_contributed}</span></div>`).join('');
-                    document.getElementById('pendingList').innerHTML = data.pending_members.map(m => `<div class="border-bottom py-2"><strong>${m.username}</strong><br><small>${m.email}</small><button class="btn btn-sm btn-success float-end" onclick="approveMember(${m.id})">Approve</button></div>`).join('');
                 } else {
-                    document.getElementById('groupInfo').innerHTML = `<div class="alert alert-warning">⚠️ No group assigned yet. <a href="#" onclick="showSection('createGroup')">Request a group</a> from Super Admin.</div>`;
+                    document.getElementById('groupInfo').innerHTML = `
+                        <div class="card text-center">
+                            <i class="bi bi-building" style="font-size: 48px; color: #ccc;"></i>
+                            <h4>No Group Assigned Yet</h4>
+                            <p>You need to request a group from the Super Admin</p>
+                            <button class="btn-primary btn" onclick="showSection('createGroup')">Request a Group</button>
+                        </div>
+                    `;
                 }
-                await loadMyRequests();
-            } catch (error) { console.error(error); }
+            } catch (error) {
+                console.error(error);
+            }
         }
         
-        async function loadMyRequests() {
-            const token = getToken();
-            const res = await fetch(`${API_URL}/admin/my-requests/`, { headers: { 'Authorization': `Bearer ${token}` } });
-            const requests = await res.json();
-            const pendingCount = requests.filter(r => r.status === 'pending').length;
-            document.getElementById('notificationBadge').innerText = pendingCount;
-            
-            document.getElementById('requestsList').innerHTML = requests.map(r => `
-                <div class="request-card">
-                    <div style="display: flex; justify-content: space-between;">
-                        <div><strong>${r.group_name}</strong><br><small>Requested: ${r.created_at}</small><br><small>Goal: KES ${r.weekly_goal} | Daily: KES ${r.daily_contribution}</small></div>
-                        <div><span class="request-status status-${r.status}">${r.status.toUpperCase()}</span></div>
-                    </div>
-                    ${r.superadmin_notes ? `<div class="mt-2 p-2 bg-light rounded"><small><strong>Super Admin Response:</strong> ${r.superadmin_notes}</small></div>` : ''}
-                    ${r.status === 'approved' && r.group_code ? `<div class="mt-2 alert alert-success"><strong>✅ Group Created!</strong><br>Group Code: <code>${r.group_code}</code><br>Share this code with members to join.</div>` : ''}
-                </div>
-            `).join('');
-        }
-        
+        // Submit group creation request
         document.getElementById('requestForm')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const token = getToken();
-            const btn = e.target.querySelector('button[type="submit"]');
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sending Request...';
+            const submitBtn = document.getElementById('submitBtn');
             
             const requestData = {
                 group_name: document.getElementById('groupName').value,
@@ -153,22 +157,96 @@
                 admin_notes: document.getElementById('adminNotes').value
             };
             
-            const res = await fetch(`${API_URL}/admin/request-create-group/`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify(requestData)
-            });
-            const data = await res.json();
-            alert(data.message || (res.ok ? '✅ Request sent to Super Admin!' : '❌ Failed to send request'));
-            if (res.ok) { document.getElementById('requestForm').reset(); showSection('myRequests'); loadMyRequests(); }
-            btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-send"></i> Submit Request to Super Admin';
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sending...';
+            
+            try {
+                const res = await fetch(`${API_URL}/admin/send-group-request/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok) {
+                    alert('✅ ' + data.message);
+                    document.getElementById('requestForm').reset();
+                    showSection('myRequests');
+                    loadMyRequests();
+                } else {
+                    alert('❌ Error: ' + (data.error || data.message));
+                }
+            } catch (error) {
+                alert('❌ Error sending request: ' + error.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-send"></i> Send Request to Super Admin';
+            }
         });
         
-        async function approveMember(id) { const token = getToken(); await fetch(`${API_URL}/group-admin/approve/${id}/`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } }); alert('✅ Member approved'); loadDashboard(); }
-        function showSection(section) { ['dashboard', 'createGroup', 'myRequests', 'members', 'pending'].forEach(s => document.getElementById(`${s}Section`).style.display = 'none'); document.getElementById(`${section}Section`).style.display = 'block'; }
-        function logout() { localStorage.removeItem('access_token'); window.location.href = 'login.html'; }
-        loadDashboard(); setInterval(loadDashboard, 30000);
+        async function loadMyRequests() {
+            const token = getToken();
+            try {
+                const res = await fetch(`${API_URL}/admin/my-requests/`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const requests = await res.json();
+                
+                if (requests.length === 0) {
+                    document.getElementById('requestsList').innerHTML = `
+                        <div class="card text-center">
+                            <i class="bi bi-inbox" style="font-size: 48px; color: #ccc;"></i>
+                            <p>No requests submitted yet</p>
+                            <button class="btn-primary btn" onclick="showSection('createGroup')">Create Your First Request</button>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('requestsList').innerHTML = requests.map(r => `
+                        <div class="request-card ${r.status}">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <strong><i class="bi bi-building"></i> ${r.group_name}</strong>
+                                    <span class="status-badge status-${r.status} ms-2">${r.status.toUpperCase()}</span>
+                                </div>
+                                <small class="text-muted">${r.created_at}</small>
+                            </div>
+                            <div class="mt-2">
+                                <small>Goal: KES ${r.weekly_goal} | Daily: KES ${r.daily_contribution}</small>
+                            </div>
+                            ${r.superadmin_notes ? `<div class="mt-2 alert alert-info small">📝 Super Admin: ${r.superadmin_notes}</div>` : ''}
+                            ${r.status === 'approved' && r.group_code ? `<div class="mt-2 alert alert-success">🎉 Group Approved! Code: <strong>${r.group_code}</strong></div>` : ''}
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+        
+        function showSection(section) {
+            document.getElementById('dashboardSection').style.display = 'none';
+            document.getElementById('createGroupSection').style.display = 'none';
+            document.getElementById('myRequestsSection').style.display = 'none';
+            document.getElementById('membersSection').style.display = 'none';
+            document.getElementById(`${section}Section`).style.display = 'block';
+            
+            // Update active sidebar
+            document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (section === 'myRequests') loadMyRequests();
+        }
+        
+        function logout() {
+            localStorage.removeItem('access_token');
+            window.location.href = 'login.html';
+        }
+        
+        loadDashboard();
     </script>
 </body>
 </html>
