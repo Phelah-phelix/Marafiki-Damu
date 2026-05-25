@@ -1,0 +1,13 @@
+{
+  "name": "marafiki-damu-frontend",
+  "version": "1.0.0",
+  "description": "Marafiki Damu - Youth Chama Savings Platform",
+  "main": "index.html",
+  "scripts": {
+    "start": "serve .",
+    "dev": "serve ."
+  },
+  "keywords": ["chama", "savings", "django", "vercel"],
+  "author": "Marafiki Damu",
+  "license": "MIT"
+}
