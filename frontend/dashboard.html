@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marafiki Damu | Member Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f5f7fb;
+        }
+        .navbar-modern {
+            background: white;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .sidebar {
+            background: white;
+            height: calc(100vh - 70px);
+            position: sticky;
+            top: 70px;
+            border-right: 1px solid #eef2f6;
+            padding: 1.5rem 0;
+        }
+        .sidebar-nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            color: #5a6e8a;
+            text-decoration: none;
+            font-weight: 500;
+            margin: 0.25rem 0;
+        }
+        .sidebar-nav-link i { width: 1.5rem; margin-right: 0.75rem; }
+        .sidebar-nav-link:hover { background: #f0f4f9; color: #4361ee; }
+        .sidebar-nav-link.active { background: #4361ee; color: white; }
+        .main-content { padding: 2rem; }
+        .welcome-card {
+            background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            color: white;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 1.25rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid #eef2f6;
+        }
+        .stat-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.08); }
+        .stat-icon {
+            width: 52px;
+            height: 52px;
+            background: rgba(67, 97, 238, 0.1);
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+        .stat-icon i { font-size: 1.6rem; color: #4361ee; }
+        .stat-value { font-size: 2rem; font-weight: 800; color: #1a2c3e; margin-bottom: 0.25rem; }
+        .stat-label { font-size: 0.8rem; color: #8a99b4; font-weight: 600; text-transform: uppercase; }
+        .card-modern {
+            background: white;
+            border-radius: 1.25rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid #eef2f6;
+        }
+        .card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #1a2c3e;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .progress { height: 12px; border-radius: 12px; background: #eef2f6; }
+        .progress-bar { background: linear-gradient(90deg, #4361ee, #3a0ca3); border-radius: 12px; }
+        .btn-contribute {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            border: none;
+            padding: 1rem;
+            border-radius: 1rem;
+            font-weight: 600;
+            width: 100%;
+        }
+        .ai-card {
+            background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+            border-radius: 1.25rem;
+            padding: 1.5rem;
+            color: white;
+        }
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.875rem 0;
+            border-bottom: 1px solid #eef2f6;
+        }
+        .rank-badge {
+            width: 36px;
+            height: 36px;
+            background: #f0f4f9;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+        .rank-1 { background: linear-gradient(135deg, #ffd700, #ffb347); color: white; }
+        .rank-2 { background: linear-gradient(135deg, #c0c0c0, #a8a8a8); color: white; }
+        .rank-3 { background: linear-gradient(135deg, #cd7f32, #b8860b); color: white; }
+        .chart-container { position: relative; height: 280px; width: 100%; margin: 1rem 0; }
+        canvas { max-height: 280px; width: 100% !important; }
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main-content { padding: 1rem; }
+            .chart-container { height: 220px; }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar-modern">
+    <div class="container-fluid px-4">
+        <div class="d-flex align-items-center">
+            <i class="bi bi-heart-fill text-danger me-2 fs-4"></i>
+            <span class="fw-bold fs-5">Marafiki Damu</span>
+        </div>
+        <div class="dropdown">
+            <button class="btn btn-link text-dark text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
+                <i class="bi bi-person-circle me-1"></i> <span id="usernameDisplay">Loading...</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileModal"><i class="bi bi-person"></i> Profile</a></li>
+                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#historyModal"><i class="bi bi-clock-history"></i> History</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="#" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-2 d-none d-lg-block">
+            <div class="sidebar">
+                <ul class="list-unstyled">
+                    <li><a href="#" class="sidebar-nav-link active" onclick="showSection('overview')"><i class="bi bi-speedometer2"></i> Overview</a></li>
+                    <li><a href="#" class="sidebar-nav-link" onclick="showSection('leaderboard')"><i class="bi bi-trophy"></i> Leaderboard</a></li>
+                    <li><a href="#" class="sidebar-nav-link" onclick="showSection('history')"><i class="bi bi-clock-history"></i> History</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-lg-10">
+            <div class="main-content">
+                <div id="alertContainer"></div>
+
+                <div id="overviewSection">
+                    <div class="welcome-card">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h3 class="fw-bold mb-2">Welcome back, <span id="welcomeName">Member</span>! 👋</h3>
+                                <p class="mb-0 opacity-75">Member #<span id="memberNumber">---</span> • <span id="groupName">---</span></p>
+                            </div>
+                            <div class="col-md-4 text-md-end">
+                                <div class="bg-white bg-opacity-20 rounded-3 p-2 d-inline-block">
+                                    <small class="opacity-75">Savings Streak</small>
+                                    <h4 class="fw-bold mb-0" id="savingsStreak">0 days</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-4" id="statsRow"></div>
+
+                    <div class="row g-4">
+                        <div class="col-lg-7">
+                            <div class="card-modern">
+                                <div class="card-title">
+                                    <span><i class="bi bi-graph-up text-primary me-2"></i> Savings Growth</span>
+                                    <span class="badge bg-light text-dark" id="growthRate">+0%</span>
+                                </div>
+                                <div class="chart-container">
+                                    <canvas id="savingsGrowthChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-5">
+                            <div class="card-modern">
+                                <div class="card-title">
+                                    <span><i class="bi bi-pie-chart text-primary me-2"></i> Distribution</span>
+                                </div>
+                                <div class="chart-container" style="height: 250px;">
+                                    <canvas id="distributionPieChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-4">
+                        <div class="col-lg-6">
+                            <div class="card-modern">
+                                <div class="card-title">
+                                    <span><i class="bi bi-calendar-check text-primary me-2"></i> Weekly Goal</span>
+                                    <span class="badge bg-success" id="goalBadge">On Track</span>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <small class="text-muted">Progress</small>
+                                        <small class="fw-semibold" id="progressPercent">0%</small>
+                                    </div>
+                                    <div class="progress">
+                                        <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+                                    </div>
+                                    <div class="text-center mt-2">
+                                        <small class="text-muted">🎯 <span id="remainingAmount">KES 0</span> remaining of KES <span id="weeklyGoalAmount">0</span></small>
+                                    </div>
+                                </div>
+                                <div class="row mt-3">
+                                    <div class="col-6 text-center border-end">
+                                        <small class="text-muted">Daily Target</small>
+                                        <h6 class="fw-bold text-primary" id="dailyTarget">KES 0</h6>
+                                    </div>
+                                    <div class="col-6 text-center">
+                                        <small class="text-muted">Days Left</small>
+                                        <h6 class="fw-bold text-warning" id="daysLeft">0</h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="ai-card">
+                                <div class="d-flex align-items-center gap-2 mb-3">
+                                    <i class="bi bi-robot fs-4"></i>
+                                    <h6 class="mb-0 fw-semibold">AI Financial Insight</h6>
+                                </div>
+                                <div id="aiContent"></div>
+                                <div class="mt-3 pt-2 border-top border-light">
+                                    <div class="row text-center">
+                                        <div class="col-4">
+                                            <small class="opacity-75">Prediction</small>
+                                            <h6 class="fw-bold mb-0" id="predictedAmount">KES 0</h6>
+                                        </div>
+                                        <div class="col-4">
+                                            <small class="opacity-75">Confidence</small>
+                                            <h6 class="fw-bold mb-0" id="confidenceScore">0%</h6>
+                                        </div>
+                                        <div class="col-4">
+                                            <small class="opacity-75">Trend</small>
+                                            <h6 class="fw-bold mb-0" id="trendStatus">—</h6>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="leaderboardSection" style="display: none;">
+                    <div class="card-modern">
+                        <div class="card-title"><i class="bi bi-trophy text-warning me-2"></i> Weekly Leaderboard</div>
+                        <div id="leaderboardList" class="mt-3"></div>
+                    </div>
+                </div>
+
+                <div id="historySection" style="display: none;">
+                    <div class="card-modern">
+                        <div class="card-title"><i class="bi bi-clock-history me-2"></i> Transaction History</div>
+                        <div id="historyList" class="mt-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+<div class="modal fade" id="paymentModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 1.25rem;">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-semibold"><i class="bi bi-phone text-primary me-2"></i>M-Pesa Payment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info small py-2"><i class="bi bi-info-circle"></i> Paybill: <strong>1027027</strong> | Account: Your Member Number</div>
+                <div class="mb-3"><label class="form-label fw-semibold small">Amount (KES)</label><input type="number" id="modalAmount" class="form-control" placeholder="Enter amount"></div>
+                <div class="mb-3"><label class="form-label fw-semibold small">Phone Number</label><input type="tel" id="modalPhone" class="form-control" placeholder="0712345678"></div>
+            </div>
+            <div class="modal-footer border-0">
+                <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" onclick="initiatePayment()">Send STK Push</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="profileModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content"><div class="modal-header"><h5 class="modal-title">My Profile</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="profileContent"></div></div>
+    </div>
+</div>
+
+<div class="modal fade" id="historyModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content"><div class="modal-header"><h5 class="modal-title">Transaction History</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="fullHistoryContent"></div></div>
+    </div>
+</div>
+
+<script>
+    const API_URL = 'http://localhost:8000/api';
+    let growthChart = null;
+    let pieChart = null;
+
+    function getToken() { return localStorage.getItem('access_token'); }
+
+    async function loadDashboard() {
+        const token = getToken();
+        if (!token) { window.location.href = 'login.html'; return; }
+
+        try {
+            const response = await fetch(`${API_URL}/dashboard/`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.status === 401) { localStorage.removeItem('access_token'); window.location.href = 'login.html'; return; }
+
+            const data = await response.json();
+
+            // Update user info
+            document.getElementById('welcomeName').innerText = data.member.username;
+            document.getElementById('usernameDisplay').innerText = data.member.username;
+            document.getElementById('memberNumber').innerText = data.member.number;
+            document.getElementById('groupName').innerText = data.group.name;
+            document.getElementById('dailyTarget').innerHTML = `KES ${data.group.daily_contribution}`;
+            document.getElementById('daysLeft').innerText = data.group.days_left_in_week;
+            document.getElementById('weeklyGoalAmount').innerText = data.group.weekly_goal;
+
+            // Savings streak
+            let streak = 0;
+            if (data.recent_contributions && data.recent_contributions.length > 0) {
+                streak = data.recent_contributions.length;
+            }
+            document.getElementById('savingsStreak').innerHTML = `${streak} day${streak !== 1 ? 's' : ''}`;
+
+            // Stats Row
+            const weeklyProgress = data.weekly_progress.contributed;
+            const weeklyGoal = data.group.weekly_goal;
+            const weeklyPercentage = (weeklyProgress / weeklyGoal * 100).toFixed(1);
+            
+            document.getElementById('statsRow').innerHTML = `
+                <div class="col-md-3 col-6">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="bi bi-piggy-bank"></i></div>
+                        <div class="stat-value">KES ${data.member.total_contributed.toFixed(0)}</div>
+                        <div class="stat-label">Total Savings</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="bi bi-calendar-week"></i></div>
+                        <div class="stat-value">${weeklyPercentage}%</div>
+                        <div class="stat-label">Weekly Goal</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="bi bi-trophy"></i></div>
+                        <div class="stat-value">#${data.your_rank}</div>
+                        <div class="stat-label">Your Rank</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="bi bi-calculator"></i></div>
+                        <div class="stat-value">KES ${(weeklyGoal - weeklyProgress).toFixed(0)}</div>
+                        <div class="stat-label">Remaining</div>
+                    </div>
+                </div>
+            `;
+
+            // Progress Bar
+            const percent = data.weekly_progress.percentage;
+            document.getElementById('progressBar').style.width = `${percent}%`;
+            document.getElementById('progressPercent').innerText = `${percent.toFixed(1)}%`;
+            document.getElementById('remainingAmount').innerHTML = `KES ${data.weekly_progress.remaining.toFixed(0)}`;
+
+            const badge = document.getElementById('goalBadge');
+            if (percent >= 100) badge.innerHTML = '🎉 Goal Achieved!';
+            else if (percent >= 75) badge.innerHTML = '🔥 Almost There';
+            else if (percent >= 50) badge.innerHTML = '📈 Good Progress';
+            else badge.innerHTML = '⏳ Keep Going';
+
+            // AI Content
+            document.getElementById('aiContent').innerHTML = `<p class="small mb-2">${data.ai_prediction.recommendation}</p>`;
+            document.getElementById('predictedAmount').innerHTML = `KES ${data.ai_prediction.predicted_total.toFixed(0)}`;
+            document.getElementById('confidenceScore').innerHTML = `${(data.ai_prediction.confidence * 100).toFixed(0)}%`;
+            const trendEl = document.getElementById('trendStatus');
+            if (data.ai_prediction.trend === 'improving') trendEl.innerHTML = '📈 Up';
+            else if (data.ai_prediction.trend === 'declining') trendEl.innerHTML = '📉 Down';
+            else trendEl.innerHTML = '📊 Stable';
+
+            document.getElementById('growthRate').innerHTML = percent >= 100 ? '+🎯 Goal Met' : `+${weeklyProgress.toFixed(0)} this week`;
+
+            // Leaderboard
+            const leaderboardHtml = data.leaderboard.slice(0, 10).map((m, idx) => {
+                let rankClass = idx === 0 ? 'rank-1' : idx === 1 ? 'rank-2' : idx === 2 ? 'rank-3' : '';
+                const isYou = m.member_number === data.member.number;
+                return `<div class="leaderboard-item">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rank-badge ${rankClass}">${idx + 1}</div>
+                        <div><span class="fw-semibold">${m.username}</span>${isYou ? '<span class="badge bg-primary ms-2">You</span>' : ''}</div>
+                    </div>
+                    <div class="fw-bold text-success">KES ${m.weekly_total.toFixed(0)}</div>
+                </div>`;
+            }).join('');
+            document.getElementById('leaderboardList').innerHTML = leaderboardHtml || '<p class="text-muted text-center">No contributions yet</p>';
+
+            // History
+            if (data.recent_contributions && data.recent_contributions.length > 0) {
+                document.getElementById('historyList').innerHTML = data.recent_contributions.slice(0, 10).map(c => `
+                    <div class="d-flex justify-content-between align-items-center py-3 border-bottom">
+                        <div><i class="bi bi-check-circle-fill text-success me-2"></i><span>${c.date}</span></div>
+                        <div class="fw-bold text-success">+KES ${c.amount}</div>
+                        <div><small class="text-muted">${c.transaction_id}</small></div>
+                    </div>
+                `).join('');
+                document.getElementById('fullHistoryContent').innerHTML = `<div class="table-responsive"><table class="table"><thead><tr><th>Date</th><th>Amount</th><th>Transaction ID</th></tr></thead><tbody>${data.recent_contributions.map(c => `<tr><td>${c.date}</td><td class="text-success fw-bold">+KES ${c.amount}</td><td><small>${c.transaction_id}</small></td></tr>`).join('')}</tbody></table></div>`;
+            } else {
+                document.getElementById('historyList').innerHTML = '<p class="text-muted text-center py-4">No contributions yet</p>';
+            }
+
+            // Profile
+            document.getElementById('profileContent').innerHTML = `
+                <div class="text-center mb-3"><div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex p-3"><i class="bi bi-person fs-1 text-primary"></i></div></div>
+                <div class="row"><div class="col-5 text-muted">Username:</div><div class="col-7 fw-semibold">${data.member.username}</div>
+                <div class="col-5 text-muted">Member #:</div><div class="col-7 fw-semibold">${data.member.number}</div>
+                <div class="col-5 text-muted">Email:</div><div class="col-7">${data.member.email}</div>
+                <div class="col-5 text-muted">Group:</div><div class="col-7">${data.group.name}</div>
+                <div class="col-5 text-muted">Total Saved:</div><div class="col-7 text-success fw-bold">KES ${data.member.total_contributed}</div>
+                <div class="col-5 text-muted">Joined:</div><div class="col-7">${new Date(data.member.joined_at).toLocaleDateString()}</div></div>
+            `;
+
+            // ========== CHART 1: LINE CHART ==========
+            const growthCtx = document.getElementById('savingsGrowthChart').getContext('2d');
+            if (growthChart) growthChart.destroy();
+
+            let growthLabels = [];
+            let growthData = [];
+            
+            if (data.recent_contributions && data.recent_contributions.length > 0) {
+                let cumulative = 0;
+                const sorted = [...data.recent_contributions].sort((a, b) => new Date(a.date) - new Date(b.date));
+                for (let i = 0; i < sorted.length; i++) {
+                    cumulative += sorted[i].amount;
+                    growthLabels.push(sorted[i].date);
+                    growthData.push(cumulative);
+                }
+            } else {
+                growthLabels = ['No Data'];
+                growthData = [0];
+            }
+
+            growthChart = new Chart(growthCtx, {
+                type: 'line',
+                data: {
+                    labels: growthLabels,
+                    datasets: [{
+                        label: 'Cumulative Savings (KES)',
+                        data: growthData,
+                        borderColor: '#4361ee',
+                        backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#4361ee',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: { callbacks: { label: (ctx) => `KES ${ctx.raw.toFixed(0)}` } }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Amount (KES)' }, ticks: { callback: (val) => `KES ${val}` } }
+                    }
+                }
+            });
+
+            // ========== CHART 2: PIE CHART ==========
+            const pieCtx = document.getElementById('distributionPieChart').getContext('2d');
+            if (pieChart) pieChart.destroy();
+
+            let thisWeek = 0, lastWeek = 0, older = 0;
+            if (data.recent_contributions && data.recent_contributions.length > 0) {
+                const now = new Date();
+                data.recent_contributions.forEach(c => {
+                    const contribDate = new Date(c.date);
+                    const daysDiff = Math.floor((now - contribDate) / (1000 * 60 * 60 * 24));
+                    if (daysDiff <= 7) thisWeek += c.amount;
+                    else if (daysDiff <= 14) lastWeek += c.amount;
+                    else older += c.amount;
+                });
+            }
+
+            // If no data, show sample data
+            if (thisWeek === 0 && lastWeek === 0 && older === 0) {
+                thisWeek = 1;
+            }
+
+            pieChart = new Chart(pieCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['This Week', 'Last Week', 'Older'],
+                    datasets: [{
+                        data: [thisWeek, lastWeek, older],
+                        backgroundColor: ['#4361ee', '#3a0ca3', '#b5179e'],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: { callbacks: { label: (ctx) => `${ctx.label}: KES ${ctx.raw.toFixed(0)}` } }
+                    }
+                }
+            });
+
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    function showPaymentModal() { 
+        document.getElementById('modalAmount').value = 10; 
+        new bootstrap.Modal(document.getElementById('paymentModal')).show(); 
+    }
+
+    async function initiatePayment() {
+        const amount = document.getElementById('modalAmount').value;
+        const phone = document.getElementById('modalPhone').value;
+        const token = getToken();
+        
+        if (!amount || amount <= 0) { alert('Please enter a valid amount'); return; }
+        if (!phone || phone.length < 10) { alert('Please enter a valid phone number'); return; }
+
+        const btn = document.querySelector('#paymentModal .btn-primary');
+        btn.disabled = true; 
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+
+        try {
+            await fetch(`${API_URL}/mpesa-payment/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ amount, phone_number: phone })
+            });
+            
+            const contributeRes = await fetch(`${API_URL}/contribute/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ amount })
+            });
+            
+            if (contributeRes.ok) {
+                alert(`✅ Success! Contributed KES ${amount}`);
+                bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
+                loadDashboard();
+            } else {
+                alert('❌ Contribution failed');
+            }
+        } catch (error) {
+            alert('❌ Connection error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = 'Send STK Push';
+        }
+    }
+
+    function showSection(section) {
+        const sections = ['overview', 'leaderboard', 'history'];
+        sections.forEach(s => document.getElementById(`${s}Section`).style.display = 'none');
+        document.getElementById(`${section}Section`).style.display = 'block';
+        document.querySelectorAll('.sidebar-nav-link').forEach(l => l.classList.remove('active'));
+        if (event.target.closest('.sidebar-nav-link')) event.target.closest('.sidebar-nav-link').classList.add('active');
+    }
+
+    function logout() { 
+        localStorage.removeItem('access_token'); 
+        window.location.href = 'login.html'; 
+    }
+
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', loadDashboard);
+    setInterval(loadDashboard, 30000);
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

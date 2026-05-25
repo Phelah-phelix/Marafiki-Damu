@@ -1,0 +1,324 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Admin | Marafiki Damu</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f0f2f5;
+        }
+        .sidebar {
+            background: #1a1a2e;
+            min-height: 100vh;
+            position: fixed;
+            width: 280px;
+            padding: 1.5rem;
+        }
+        .main-content {
+            margin-left: 280px;
+            padding: 2rem;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #e9ecef;
+            transition: all 0.2s;
+        }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
+        .group-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            border: 1px solid #e9ecef;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .group-card:hover { transform: translateX(5px); border-left: 3px solid #4361ee; }
+        .request-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #ffc107;
+        }
+        .sidebar-nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            border-radius: 0.5rem;
+            margin-bottom: 0.25rem;
+            transition: all 0.2s;
+        }
+        .sidebar-nav-link:hover { background: rgba(255,255,255,0.1); color: white; }
+        .sidebar-nav-link.active { background: #4361ee; color: white; }
+        .sidebar-nav-link i { width: 1.5rem; margin-right: 0.75rem; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="text-center mb-4">
+            <div class="bg-white bg-opacity-10 rounded-3 d-inline-flex p-3 mb-2">
+                <i class="bi bi-shield-lock text-white" style="font-size: 1.5rem;"></i>
+            </div>
+            <h6 class="text-white mb-0">Super Administrator</h6>
+            <small class="text-white-50" id="adminName">phelix</small>
+        </div>
+        <hr class="text-white-50">
+        <nav class="nav flex-column">
+            <a class="sidebar-nav-link active" href="#" onclick="showSection('dashboard')"><i class="bi bi-speedometer2"></i> Dashboard</a>
+            <a class="sidebar-nav-link" href="#" onclick="showSection('groups')"><i class="bi bi-people"></i> All Groups</a>
+            <a class="sidebar-nav-link" href="#" onclick="showSection('requests')"><i class="bi bi-envelope-paper"></i> Admin Requests</a>
+            <a class="sidebar-nav-link" href="#" onclick="showSection('create')"><i class="bi bi-plus-circle"></i> Create Group</a>
+            <hr class="text-white-50">
+            <a class="sidebar-nav-link text-danger" href="#" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Logout</a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <div id="dashboardSection">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-semibold">Dashboard Overview</h3>
+                <span id="currentTime" class="text-muted"></span>
+            </div>
+            <div class="row" id="statsRow"></div>
+            <div class="row mt-4">
+                <div class="col-lg-8">
+                    <div class="stat-card">
+                        <h6 class="fw-semibold mb-3">Groups Overview</h6>
+                        <canvas id="groupsChart" height="300"></canvas>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="stat-card">
+                        <h6 class="fw-semibold mb-3">Quick Actions</h6>
+                        <button class="btn btn-primary w-100 mb-2" onclick="showSection('create')">+ Create New Group</button>
+                        <button class="btn btn-outline-primary w-100" onclick="showSection('requests')">📋 View Pending Requests</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="groupsSection" style="display: none;">
+            <h3 class="fw-semibold mb-4">All Chama Groups</h3>
+            <div id="groupsList"></div>
+        </div>
+
+        <div id="requestsSection" style="display: none;">
+            <h3 class="fw-semibold mb-4">Pending Admin Requests</h3>
+            <div id="requestsList"></div>
+        </div>
+
+        <div id="createSection" style="display: none;">
+            <div class="stat-card">
+                <h3 class="fw-semibold mb-4">Create New Chama Group</h3>
+                <form id="createGroupForm">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Group Name</label>
+                        <input type="text" id="groupName" class="form-control" placeholder="e.g., Youth Empowerment Chama" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Description</label>
+                        <textarea id="groupDesc" class="form-control" rows="3" placeholder="Describe the group's purpose..."></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Weekly Goal (KES)</label>
+                            <input type="number" id="weeklyGoal" class="form-control" value="100">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Daily Contribution (KES)</label>
+                            <input type="number" id="dailyContribution" class="form-control" value="10">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Max Members</label>
+                        <input type="number" id="maxMembers" class="form-control" value="50">
+                    </div>
+                    <button type="submit" class="btn btn-primary px-4">Create Group</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000/api';
+        let groupsChart = null;
+
+        function getToken() { return localStorage.getItem('access_token'); }
+        function updateTime() { document.getElementById('currentTime').innerText = new Date().toLocaleTimeString(); }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        async function loadDashboard() {
+            const token = getToken();
+            if (!token) { window.location.href = 'login.html'; return; }
+
+            try {
+                const response = await fetch(`${API_URL}/superadmin/groups/`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const groups = await response.json();
+
+                const totalGroups = groups.length;
+                const totalMembers = groups.reduce((s,g) => s + g.member_count, 0);
+                const activeGroups = groups.filter(g => g.is_active).length;
+
+                document.getElementById('statsRow').innerHTML = `
+                    <div class="col-md-4">
+                        <div class="stat-card text-center">
+                            <h2 class="fw-bold text-primary mb-0">${totalGroups}</h2>
+                            <small class="text-muted">Total Groups</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card text-center">
+                            <h2 class="fw-bold text-success mb-0">${totalMembers}</h2>
+                            <small class="text-muted">Total Members</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card text-center">
+                            <h2 class="fw-bold text-warning mb-0" id="pendingCount">0</h2>
+                            <small class="text-muted">Pending Requests</small>
+                        </div>
+                    </div>
+                `;
+
+                if (groupsChart) groupsChart.destroy();
+                const ctx = document.getElementById('groupsChart').getContext('2d');
+                groupsChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: groups.map(g => g.name.length > 15 ? g.name.slice(0,15)+'...' : g.name),
+                        datasets: [{
+                            label: 'Members',
+                            data: groups.map(g => g.member_count),
+                            backgroundColor: '#4361ee',
+                            borderRadius: 8
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+
+                document.getElementById('groupsList').innerHTML = groups.map(g => `
+                    <div class="group-card">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="fw-semibold mb-1">${g.name}</h6>
+                                <small class="text-muted">Code: <code>${g.code}</code></small>
+                                <div class="mt-2"><small>Admin: ${g.admin_name}</small></div>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-primary mb-1 d-block">${g.member_count} Members</span>
+                                <span class="badge ${g.is_active ? 'bg-success' : 'bg-secondary'}">${g.is_active ? 'Active' : 'Inactive'}</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                await loadRequests();
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        async function loadRequests() {
+            const token = getToken();
+            const response = await fetch(`${API_URL}/superadmin/pending-requests/`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const requests = await response.json();
+            document.getElementById('pendingCount').innerText = requests.length;
+            document.getElementById('requestsList').innerHTML = requests.map(r => `
+                <div class="request-card">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="fw-semibold mb-1">${r.requester}</h6>
+                            <small class="text-muted">${r.requester_email}</small>
+                            <div class="mt-2">
+                                <span class="badge bg-warning">${r.request_type}</span>
+                                ${r.group_name ? `<span class="badge bg-info ms-1">${r.group_name}</span>` : ''}
+                            </div>
+                            <small class="text-muted d-block mt-1">Requested: ${r.created_at}</small>
+                        </div>
+                        <div>
+                            <button class="btn btn-sm btn-success me-2" onclick="approveRequest(${r.id})">Approve</button>
+                            <button class="btn btn-sm btn-danger" onclick="rejectRequest(${r.id})">Reject</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function approveRequest(id) {
+            const token = getToken();
+            await fetch(`${API_URL}/superadmin/approve-request/${id}/`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            alert('✅ Request approved!');
+            loadDashboard();
+        }
+
+        async function rejectRequest(id) {
+            const token = getToken();
+            await fetch(`${API_URL}/superadmin/reject-request/${id}/`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            alert('❌ Request rejected');
+            loadDashboard();
+        }
+
+        document.getElementById('createGroupForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const token = getToken();
+            const response = await fetch(`${API_URL}/superadmin/create-group/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({
+                    group_name: document.getElementById('groupName').value,
+                    description: document.getElementById('groupDesc').value,
+                    weekly_goal: document.getElementById('weeklyGoal').value,
+                    daily_contribution: document.getElementById('dailyContribution').value,
+                    max_members: document.getElementById('maxMembers').value
+                })
+            });
+            const data = await response.json();
+            alert(`✅ ${data.message}\n📋 Group Code: ${data.group_code}`);
+            document.getElementById('createGroupForm').reset();
+            showSection('groups');
+            loadDashboard();
+        });
+
+        function showSection(section) {
+            const sections = ['dashboard', 'groups', 'requests', 'create'];
+            sections.forEach(s => { document.getElementById(`${s}Section`).style.display = 'none'; });
+            document.getElementById(`${section}Section`).style.display = 'block';
+            document.querySelectorAll('.sidebar-nav-link').forEach(l => l.classList.remove('active'));
+            event.target.closest('.sidebar-nav-link').classList.add('active');
+        }
+
+        function logout() {
+            localStorage.removeItem('access_token');
+            window.location.href = 'login.html';
+        }
+
+        loadDashboard();
+        setInterval(loadDashboard, 30000);
+    </script>
+</body>
+</html>

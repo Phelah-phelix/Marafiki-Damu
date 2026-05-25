@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Superuser Dashboard - Marafiki Damu</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { background: #f0f2f5; }
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+        .card-stats {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .group-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .group-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+        .status-pending { background: #ffc107; }
+        .status-approved { background: #28a745; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar text-white p-3">
+                <div class="text-center mb-4">
+                    <i class="bi bi-shield-lock" style="font-size: 2rem;"></i>
+                    <h5 class="mt-2">Super Admin</h5>
+                </div>
+                <hr>
+                <div class="nav flex-column">
+                    <a href="#" class="nav-link text-white" onclick="showSection('dashboard')">
+                        <i class="bi bi-speedometer2"></i> Dashboard
+                    </a>
+                    <a href="#" class="nav-link text-white" onclick="showSection('groups')">
+                        <i class="bi bi-people"></i> All Groups
+                    </a>
+                    <a href="#" class="nav-link text-white" onclick="showSection('createGroup')">
+                        <i class="bi bi-plus-circle"></i> Create Group
+                    </a>
+                    <a href="#" class="nav-link text-white" onclick="showSection('assignAdmin')">
+                        <i class="bi bi-person-badge"></i> Assign Admin
+                    </a>
+                    <hr>
+                    <a href="#" class="nav-link text-white" onclick="logout()">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </a>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-10 p-4">
+                <!-- Dashboard Section -->
+                <div id="dashboardSection">
+                    <h3 class="mb-4">Superuser Dashboard</h3>
+                    <div class="row" id="statsCards"></div>
+                    <div class="card-stats mt-4">
+                        <h5>Recent Join Requests</h5>
+                        <div id="recentRequests" class="table-responsive"></div>
+                    </div>
+                </div>
+
+                <!-- Groups Section -->
+                <div id="groupsSection" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3>All Chama Groups</h3>
+                        <button class="btn btn-primary" onclick="showSection('createGroup')">
+                            <i class="bi bi-plus"></i> New Group
+                        </button>
+                    </div>
+                    <div id="groupsList"></div>
+                </div>
+
+                <!-- Create Group Section -->
+                <div id="createGroupSection" style="display: none;">
+                    <h3 class="mb-4">Create New Chama Group</h3>
+                    <div class="card-stats">
+                        <form id="createGroupForm">
+                            <div class="mb-3">
+                                <label>Group Name</label>
+                                <input type="text" id="groupName" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label>Description</label>
+                                <textarea id="groupDesc" class="form-control" rows="3"></textarea>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label>Weekly Goal (KES)</label>
+                                    <input type="number" id="weeklyGoal" class="form-control" value="100">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label>Daily Contribution (KES)</label>
+                                    <input type="number" id="dailyContribution" class="form-control" value="10">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label>Max Members</label>
+                                <input type="number" id="maxMembers" class="form-control" value="50">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Create Group</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Assign Admin Section -->
+                <div id="assignAdminSection" style="display: none;">
+                    <h3 class="mb-4">Assign Group Admin</h3>
+                    <div class="card-stats">
+                        <form id="assignAdminForm">
+                            <div class="mb-3">
+                                <label>Select Group</label>
+                                <select id="selectGroup" class="form-control" required></select>
+                            </div>
+                            <div class="mb-3">
+                                <label>Username to Assign as Admin</label>
+                                <input type="text" id="adminUsername" class="form-control" placeholder="Enter username" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Assign Admin</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Group Details Modal -->
+    <div class="modal fade" id="groupModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="groupModalTitle">Group Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="groupModalBody"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://192.168.1.100:8000/api';
+        
+        function getToken() { return localStorage.getItem('access_token'); }
+
+        async function loadDashboard() {
+            const token = getToken();
+            if (!token) { window.location.href = 'login.html'; return; }
+            
+            const response = await fetch(`${API_URL}/superuser/groups/`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const groups = await response.json();
+            
+            let totalMembers = 0, totalGroups = groups.length, totalRaised = 0;
+            groups.forEach(g => { totalMembers += g.member_count; });
+            
+            document.getElementById('statsCards').innerHTML = `
+                <div class="col-md-4"><div class="card-stats"><h6>Total Groups</h6><h2>${totalGroups}</h2></div></div>
+                <div class="col-md-4"><div class="card-stats"><h6>Total Members</h6><h2>${totalMembers}</h2></div></div>
+                <div class="col-md-4"><div class="card-stats"><h6>Active Groups</h6><h2>${groups.filter(g => g.is_active).length}</h2></div></div>
+            `;
+            
+            // Show pending requests
+            let allPending = [];
+            for (const group of groups) {
+                if (group.pending_count > 0) {
+                    const detailRes = await fetch(`${API_URL}/superuser/group/${group.id}/`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const detail = await detailRes.json();
+                    detail.members.filter(m => m.status === 'pending').forEach(m => {
+                        allPending.push({ ...m, group_name: group.name, group_id: group.id });
+                    });
+                }
+            }
+            
+            document.getElementById('recentRequests').innerHTML = allPending.length ? `
+                <table class="table">
+                    <thead><tr><th>Username</th><th>Email</th><th>Group</th><th>Action</th></tr></thead>
+                    <tbody>
+                        ${allPending.map(p => `
+                            <tr>
+                                <td>${p.username}</td><td>${p.email}</td><td>${p.group_name}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-success" onclick="approveMember(${p.id})">Approve</button>
+                                    <button class="btn btn-sm btn-danger" onclick="rejectMember(${p.id})">Reject</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            ` : '<p class="text-muted">No pending requests</p>';
+        }
+        
+        async function loadGroups() {
+            const token = getToken();
+            const response = await fetch(`${API_URL}/superuser/groups/`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const groups = await response.json();
+            
+            document.getElementById('groupsList').innerHTML = groups.map(g => `
+                <div class="group-card" onclick="showGroupDetails(${g.id})">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-1">${g.name}</h5>
+                            <small class="text-muted">Code: ${g.code}</small>
+                            <p class="mb-0 mt-2"><small>${g.description || 'No description'}</small></p>
+                        </div>
+                        <div class="text-end">
+                            <div><strong>${g.member_count}/${g.max_members}</strong> members</div>
+                            <div><span class="badge ${g.is_active ? 'bg-success' : 'bg-secondary'}">${g.is_active ? 'Active' : 'Inactive'}</span></div>
+                            <div><small>Admin: ${g.admin_name}</small></div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        async function showGroupDetails(groupId) {
+            const token = getToken();
+            const response = await fetch(`${API_URL}/superuser/group/${groupId}/`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await response.json();
+            
+            document.getElementById('groupModalTitle').innerHTML = `${data.group.name} - Details`;
+            document.getElementById('groupModalBody').innerHTML = `
+                <p><strong>Group Code:</strong> ${data.group.code}</p>
+                <p><strong>Weekly Goal:</strong> KES ${data.group.weekly_goal}</p>
+                <p><strong>Daily Contribution:</strong> KES ${data.group.daily_contribution}</p>
+                <p><strong>Total Members:</strong> ${data.statistics.total_members} / ${data.group.max_members}</p>
+                <p><strong>Total Raised:</strong> KES ${data.statistics.total_raised}</p>
+                <hr>
+                <h6>Members</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead><tr><th>#</th><th>Username</th><th>Total Saved</th><th>Status</th><th>Action</th></tr></thead>
+                        <tbody>
+                            ${data.members.map(m => `
+                                <tr>
+                                    <td>${m.member_number || 'Pending'}</td>
+                                    <td>${m.username}</td>
+                                    <td>KES ${m.total_contributed}</td>
+                                    <td><span class="status-badge status-${m.status}">${m.status}</span></td>
+                                    <td>
+                                        ${m.status === 'pending' ? `
+                                            <button class="btn btn-sm btn-success" onclick="approveMember(${m.id})">Approve</button>
+                                        ` : ''}
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            new bootstrap.Modal(document.getElementById('groupModal')).show();
+        }
+        
+        async function approveMember(memberId) {
+            const token = getToken();
+            await fetch(`${API_URL}/superuser/approve-member/${memberId}/`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            alert('Member approved!');
+            location.reload();
+        }
+        
+        async function rejectMember(memberId) {
+            const token = getToken();
+            await fetch(`${API_URL}/superuser/reject-member/${memberId}/`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            alert('Member rejected');
+            location.reload();
+        }
+        
+        document.getElementById('createGroupForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const token = getToken();
+            
+            const response = await fetch(`${API_URL}/superuser/create-group/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({
+                    group_name: document.getElementById('groupName').value,
+                    description: document.getElementById('groupDesc').value,
+                    weekly_goal: document.getElementById('weeklyGoal').value,
+                    daily_contribution: document.getElementById('dailyContribution').value,
+                    max_members: document.getElementById('maxMembers').value
+                })
+            });
+            
+            const data = await response.json();
+            alert(data.message);
+            if (response.ok) {
+                document.getElementById('createGroupForm').reset();
+                showSection('groups');
+                loadGroups();
+            }
+        });
+        
+        async function loadGroupsForSelect() {
+            const token = getToken();
+            const response = await fetch(`${API_URL}/superuser/groups/`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const groups = await response.json();
+            document.getElementById('selectGroup').innerHTML = groups.map(g => 
+                `<option value="${g.id}">${g.name} (${g.code})</option>`
+            ).join('');
+        }
+        
+        document.getElementById('assignAdminForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const token = getToken();
+            
+            const response = await fetch(`${API_URL}/superuser/assign-admin/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({
+                    username: document.getElementById('adminUsername').value,
+                    group_id: document.getElementById('selectGroup').value
+                })
+            });
+            
+            const data = await response.json();
+            alert(data.message);
+            if (response.ok) {
+                document.getElementById('assignAdminForm').reset();
+            }
+        });
+        
+        function showSection(section) {
+            const sections = ['dashboard', 'groups', 'createGroup', 'assignAdmin'];
+            sections.forEach(s => {
+                document.getElementById(`${s}Section`).style.display = 'none';
+            });
+            document.getElementById(`${section}Section`).style.display = 'block';
+            
+            if (section === 'dashboard') loadDashboard();
+            if (section === 'groups') loadGroups();
+            if (section === 'assignAdmin') loadGroupsForSelect();
+        }
+        
+        function logout() {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            window.location.href = 'login.html';
+        }
+        
+        loadDashboard();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

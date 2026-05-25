@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Admin - Marafiki Damu</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .sidebar {
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+            min-height: 100vh;
+            position: fixed;
+            width: 260px;
+            padding: 20px;
+        }
+        .main-content {
+            margin-left: 260px;
+            padding: 30px;
+        }
+        .card-admin {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .member-item {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        .btn-approve { background: #28a745; color: white; border: none; padding: 5px 15px; border-radius: 10px; }
+        .btn-reject { background: #dc3545; color: white; border: none; padding: 5px 15px; border-radius: 10px; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="text-center mb-4">
+            <i class="bi bi-shield-shield text-white" style="font-size: 2rem;"></i>
+            <h5 class="text-white mt-2">Group Admin</h5>
+        </div>
+        <hr class="text-white-50">
+        <nav class="nav flex-column">
+            <a class="nav-link text-white" href="#" onclick="showSection('dashboard')">📊 Dashboard</a>
+            <a class="nav-link text-white" href="#" onclick="showSection('pending')">⏳ Pending Approvals</a>
+            <a class="nav-link text-white" href="#" onclick="showSection('members')">👥 All Members</a>
+            <hr class="text-white-50">
+            <a class="nav-link text-danger" href="#" onclick="logout()">🚪 Logout</a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <div id="dashboardSection">
+            <h2 class="text-white mb-4">Group Dashboard</h2>
+            <div class="row" id="statsRow"></div>
+        </div>
+
+        <div id="pendingSection" style="display: none;">
+            <h2 class="text-white mb-4">Pending Approvals</h2>
+            <div id="pendingList"></div>
+        </div>
+
+        <div id="membersSection" style="display: none;">
+            <h2 class="text-white mb-4">All Members</h2>
+            <div id="membersList"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000/api';
+        
+        function getToken() { return localStorage.getItem('access_token'); }
+        
+        async function loadDashboard() {
+            const token = getToken();
+            if (!token) { window.location.href = 'login.html'; return; }
+            
+            try {
+                const response = await fetch(`${API_URL}/group-admin/dashboard/`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                
+                document.getElementById('statsRow').innerHTML = `
+                    <div class="col-md-4">
+                        <div class="card-admin text-center">
+                            <h3>${data.statistics.approved_members}</h3>
+                            <p>Active Members</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card-admin text-center">
+                            <h3>${data.statistics.pending_members}</h3>
+                            <p>Pending Approval</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card-admin text-center">
+                            <h3>KES ${data.statistics.total_raised}</h3>
+                            <p>Total Raised</p>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('pendingList').innerHTML = data.pending_members.map(m => `
+                    <div class="member-item">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <strong>${m.username}</strong><br>
+                                <small>${m.email} | ${m.phone}</small>
+                            </div>
+                            <div>
+                                <button class="btn-approve me-2" onclick="approveMember(${m.id})">Approve</button>
+                                <button class="btn-reject" onclick="rejectMember(${m.id})">Reject</button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                document.getElementById('membersList').innerHTML = data.members.map(m => `
+                    <div class="member-item">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <strong>#${m.member_number || 'Pending'} ${m.username}</strong><br>
+                                <small>${m.email}</small>
+                            </div>
+                            <div>
+                                <span class="badge ${m.status === 'approved' ? 'bg-success' : 'bg-warning'}">${m.status}</span>
+                                <br><small>KES ${m.total_contributed}</small>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+        
+        async function approveMember(id) {
+            const token = getToken();
+            await fetch(`${API_URL}/group-admin/approve/${id}/`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            alert('Member approved!');
+            loadDashboard();
+        }
+        
+        async function rejectMember(id) {
+            const token = getToken();
+            await fetch(`${API_URL}/group-admin/reject/${id}/`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            alert('Member rejected');
+            loadDashboard();
+        }
+        
+        function showSection(section) {
+            document.getElementById('dashboardSection').style.display = 'none';
+            document.getElementById('pendingSection').style.display = 'none';
+            document.getElementById('membersSection').style.display = 'none';
+            document.getElementById(`${section}Section`).style.display = 'block';
+        }
+        
+        function logout() {
+            localStorage.removeItem('access_token');
+            window.location.href = 'login.html';
+        }
+        
+        loadDashboard();
+    </script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marafiki Damu - Home</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .hero-section {
+            text-align: center;
+            padding: 80px 20px;
+            color: white;
+        }
+        .btn-custom {
+            background: white;
+            color: #667eea;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: bold;
+            margin: 10px;
+            text-decoration: none;
+            display: inline-block;
+            transition: transform 0.2s;
+        }
+        .btn-custom:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            color: #667eea;
+        }
+        .feature-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 15px;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero-section">
+        <i class="bi bi-heart-fill text-danger" style="font-size: 4rem;"></i>
+        <h1 class="display-4 fw-bold mt-3">Marafiki Damu</h1>
+        <p class="lead">Smart Youth Chama Savings with AI Predictions</p>
+        <div class="mt-4">
+            <a href="/register.html" class="btn-custom">
+                <i class="bi bi-person-plus"></i> Join Now
+            </a>
+            <a href="/login.html" class="btn-custom">
+                <i class="bi bi-box-arrow-in-right"></i> Login
+            </a>
+        </div>
+        
+        <div class="row mt-5">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <i class="bi bi-robot" style="font-size: 2.5rem;"></i>
+                    <h5 class="mt-3">AI Financial Insights</h5>
+                    <p>Get personalized saving predictions</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <i class="bi bi-trophy" style="font-size: 2.5rem;"></i>
+                    <h5 class="mt-3">Leaderboard</h5>
+                    <p>Compete and win with friends</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <i class="bi bi-graph-up" style="font-size: 2.5rem;"></i>
+                    <h5 class="mt-3">Progress Tracking</h5>
+                    <p>Track your savings journey</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
