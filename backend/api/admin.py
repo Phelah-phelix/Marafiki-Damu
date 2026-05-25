@@ -3,7 +3,7 @@ from .models import ChamaGroup, GroupCreationRequest, GroupAdmin, Member, Contri
 
 @admin.register(ChamaGroup)
 class ChamaGroupAdmin(admin.ModelAdmin):
-    list_display = ['group_name', 'group_code', 'is_active', 'is_approved', 'created_at']
+    list_display = ['group_name', 'group_code', 'is_active', 'created_at']
     search_fields = ['group_name', 'group_code']
     readonly_fields = ['group_code', 'created_at']
 
