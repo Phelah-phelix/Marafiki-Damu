@@ -7,7 +7,9 @@ from django.contrib.auth import authenticate
 from django.utils import timezone
 from decimal import Decimal
 import uuid
-from .models import ChamaGroup, GroupAdmin, Member, Contribution, WeeklyProgress, PasswordResetToken
+import secrets
+import string
+from .models import ChamaGroup, GroupAdmin, Member, Contribution, WeeklyProgress, PasswordResetToken, GroupInviteToken
 
 # Helper
 def get_ai_prediction(member):
@@ -27,25 +29,43 @@ def register_user(request):
     password = request.data.get('password')
     email = request.data.get('email')
     phone = request.data.get('phone_number', '')
-    group_code = request.data.get('group_code', '').upper()
+    invite_token = request.data.get('invite_token', '').upper().strip()
     is_admin = request.data.get('is_admin', False)
     
     if User.objects.filter(username=username).exists():
         return Response({'error': 'Username exists'}, status=400)
     
+    # Admin registration (no token needed)
     if is_admin:
         user = User.objects.create_user(username=username, password=password, email=email, is_staff=True)
         Member.objects.create(user=user, phone_number=phone, status='approved')
         GroupAdmin.objects.create(user=user)
         return Response({'message': 'Admin created! You can now create groups.'})
     
-    if not group_code:
-        return Response({'error': 'Group code required'}, status=400)
+    # Regular user registration - requires invite token
+    if not invite_token:
+        return Response({'error': 'Invite token required'}, status=400)
     
     try:
-        group = ChamaGroup.objects.get(group_code=group_code, is_active=True)
-    except ChamaGroup.DoesNotExist:
-        return Response({'error': 'Invalid group code'}, status=404)
+        token_obj = GroupInviteToken.objects.get(token=invite_token, is_active=True)
+        if not token_obj.is_valid():
+            return Response({'error': 'Invite token expired or already used'}, status=400)
+        
+        group = token_obj.group
+        
+        # Check group capacity
+        member_count = Member.objects.filter(group=group, status='approved').count()
+        if group.max_members and member_count >= group.max_members:
+            return Response({'error': f'Group {group.group_name} is full'}, status=400)
+        
+        # Increment token usage
+        token_obj.used_count += 1
+        if token_obj.used_count >= token_obj.max_uses:
+            token_obj.is_active = False
+        token_obj.save()
+        
+    except GroupInviteToken.DoesNotExist:
+        return Response({'error': 'Invalid invite token'}, status=404)
     
     user = User.objects.create_user(username=username, password=password, email=email)
     member = Member.objects.create(user=user, group=group, phone_number=phone, status='pending')
@@ -71,10 +91,11 @@ def login_user(request):
     
     return Response({'access': str(refresh.access_token), 'user': {'username': user.username, 'role': role}})
 
-# ============ GROUP CRUD ============
+# ============ GROUP MANAGEMENT (ADMIN) ============
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_group(request):
+    """Admin creates a new group and generates invite tokens"""
     if not request.user.is_staff and not request.user.is_superuser:
         return Response({'error': 'Only admins can create groups'}, status=403)
     
@@ -83,16 +104,38 @@ def create_group(request):
         description=request.data.get('description', ''),
         weekly_goal=request.data.get('weekly_goal', 100),
         daily_contribution=request.data.get('daily_contribution', 10),
+        max_members=request.data.get('max_members', 50),
         created_by=request.user
     )
     
-    GroupAdmin.objects.get_or_create(user=request.user, defaults={'managed_group': group})
+    # Create invite token(s) for the group
+    num_tokens = request.data.get('num_tokens', 1)
+    tokens = []
+    for _ in range(num_tokens):
+        token = GroupInviteToken.objects.create(
+            group=group,
+            created_by=request.user,
+            max_uses=request.data.get('max_uses_per_token', 1)
+        )
+        tokens.append(token.token)
     
-    return Response({'message': f'Group "{group.group_name}" created!', 'group_code': group.group_code})
+    # Assign admin to the group
+    GroupAdmin.objects.update_or_create(
+        user=request.user,
+        defaults={'managed_group': group}
+    )
+    
+    return Response({
+        'message': f'Group "{group.group_name}" created!',
+        'group_code': group.group_code,
+        'invite_tokens': tokens,
+        'group_id': group.id
+    })
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def my_groups(request):
+def get_my_groups(request):
+    """Get groups managed by the admin"""
     if request.user.is_superuser:
         groups = ChamaGroup.objects.all()
     else:
@@ -102,26 +145,80 @@ def my_groups(request):
         except GroupAdmin.DoesNotExist:
             groups = []
     
-    data = [{'id': g.id, 'name': g.group_name, 'code': g.group_code, 'weekly_goal': float(g.weekly_goal), 'member_count': g.members.filter(status='approved').count()} for g in groups]
+    data = []
+    for group in groups:
+        data.append({
+            'id': group.id,
+            'name': group.group_name,
+            'code': group.group_code,
+            'weekly_goal': float(group.weekly_goal),
+            'daily_contribution': float(group.daily_contribution),
+            'member_count': group.members.filter(status='approved').count(),
+            'pending_count': group.members.filter(status='pending').count(),
+            'invite_tokens': [{'token': t.token, 'max_uses': t.max_uses, 'used_count': t.used_count, 'is_active': t.is_active} for t in group.invite_tokens.filter(is_active=True)]
+        })
     return Response(data)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_group_detail(request, group_id):
+    """Get detailed group information"""
     try:
         group = ChamaGroup.objects.get(id=group_id)
     except ChamaGroup.DoesNotExist:
         return Response({'error': 'Group not found'}, status=404)
     
+    # Check permission
+    if not request.user.is_superuser:
+        try:
+            admin = GroupAdmin.objects.get(user=request.user)
+            if admin.managed_group != group:
+                return Response({'error': 'Not authorized'}, status=403)
+        except GroupAdmin.DoesNotExist:
+            return Response({'error': 'Not authorized'}, status=403)
+    
     return Response({
         'id': group.id,
         'name': group.group_name,
         'code': group.group_code,
+        'description': group.description,
         'weekly_goal': float(group.weekly_goal),
         'daily_contribution': float(group.daily_contribution),
         'member_count': group.members.filter(status='approved').count(),
-        'pending_members': [{'id': m.id, 'username': m.user.username, 'email': m.user.email} for m in group.members.filter(status='pending')],
-        'members': [{'id': m.id, 'member_number': m.member_number, 'username': m.user.username, 'total_contributed': float(m.total_contributed)} for m in group.members.filter(status='approved')]
+        'pending_members': [{'id': m.id, 'username': m.user.username, 'email': m.user.email, 'phone': m.phone_number} for m in group.members.filter(status='pending')],
+        'members': [{'id': m.id, 'member_number': m.member_number, 'username': m.user.username, 'total_contributed': float(m.total_contributed)} for m in group.members.filter(status='approved')],
+        'invite_tokens': [{'token': t.token, 'max_uses': t.max_uses, 'used_count': t.used_count, 'is_active': t.is_active, 'created_at': t.created_at} for t in group.invite_tokens.all()]
+    })
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def generate_invite_token(request, group_id):
+    """Generate new invite token for a group"""
+    try:
+        group = ChamaGroup.objects.get(id=group_id)
+    except ChamaGroup.DoesNotExist:
+        return Response({'error': 'Group not found'}, status=404)
+    
+    # Check permission
+    if not request.user.is_superuser:
+        try:
+            admin = GroupAdmin.objects.get(user=request.user)
+            if admin.managed_group != group:
+                return Response({'error': 'Not authorized'}, status=403)
+        except GroupAdmin.DoesNotExist:
+            return Response({'error': 'Not authorized'}, status=403)
+    
+    token = GroupInviteToken.objects.create(
+        group=group,
+        created_by=request.user,
+        max_uses=request.data.get('max_uses', 1)
+    )
+    
+    return Response({
+        'message': 'Invite token generated!',
+        'token': token.token,
+        'max_uses': token.max_uses,
+        'expires_at': token.expires_at
     })
 
 # ============ MEMBER MANAGEMENT ============
@@ -185,6 +282,14 @@ def user_dashboard(request):
         'ai_prediction': get_ai_prediction(member)
     })
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def mpesa_payment(request):
+    phone = request.data.get('phone_number', '')
+    if phone.startswith('0'):
+        phone = '254' + phone[1:]
+    return Response({'success': True, 'message': f'STK Push sent to {phone}'})
+
 # ============ FORGOT PASSWORD ============
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -219,11 +324,3 @@ def reset_password(request):
         return Response({'message': 'Password reset successful'})
     except PasswordResetToken.DoesNotExist:
         return Response({'error': 'Invalid token'}, status=400)
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def mpesa_payment(request):
-    phone = request.data.get('phone_number', '')
-    if phone.startswith('0'):
-        phone = '254' + phone[1:]
-    return Response({'success': True, 'message': f'STK Push sent to {phone}'})

@@ -8,12 +8,13 @@ urlpatterns = [
     path('forgot-password/', views.forgot_password, name='forgot-password'),
     path('reset-password/', views.reset_password, name='reset-password'),
     
-    # Groups
+    # Group Management
     path('create-group/', views.create_group, name='create-group'),
-    path('my-groups/', views.my_groups, name='my-groups'),
+    path('my-groups/', views.get_my_groups, name='my-groups'),
     path('group/<int:group_id>/', views.get_group_detail, name='group-detail'),
+    path('group/<int:group_id>/generate-token/', views.generate_invite_token, name='generate-token'),
     
-    # Members
+    # Member Management
     path('approve-member/<int:member_id>/', views.approve_member, name='approve-member'),
     path('reject-member/<int:member_id>/', views.reject_member, name='reject-member'),
     

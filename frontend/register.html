@@ -7,250 +7,104 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 50px 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .register-card {
-            background: white;
-            border-radius: 30px;
-            padding: 40px;
-            max-width: 550px;
-            margin: 0 auto;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-        .nav-tabs {
-            border-bottom: 2px solid #e9ecef;
-            margin-bottom: 25px;
-        }
-        .nav-tabs .nav-link {
-            border: none;
-            font-weight: 600;
-            color: #6c757d;
-            padding: 10px 20px;
-        }
-        .nav-tabs .nav-link.active {
-            color: #667eea;
-            border-bottom: 3px solid #667eea;
-            background: transparent;
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            padding: 12px;
-            font-weight: 600;
-            width: 100%;
-        }
-        .form-control:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 0.2rem rgba(102,126,234,0.25);
-        }
-        .alert {
-            border-radius: 15px;
-        }
+        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .register-card { background: white; border-radius: 30px; padding: 40px; max-width: 500px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); border: none; padding: 12px; width: 100%; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="register-card">
-            <div class="text-center mb-4">
-                <i class="bi bi-heart-fill text-danger" style="font-size: 3rem;"></i>
-                <h2 class="mt-2">Join Marafiki Damu</h2>
-                <p class="text-muted">Create your account</p>
+    <div class="register-card">
+        <div class="text-center mb-4">
+            <i class="bi bi-heart-fill text-danger" style="font-size: 3rem;"></i>
+            <h2>Join Marafiki Damu</h2>
+        </div>
+        <div id="errorMsg" class="alert alert-danger d-none"></div>
+        <div id="successMsg" class="alert alert-success d-none"></div>
+        
+        <ul class="nav nav-tabs mb-3" id="myTab" role="tablist">
+            <li class="nav-item"><button class="nav-link active" id="user-tab" data-bs-toggle="tab" data-bs-target="#user">User Registration</button></li>
+            <li class="nav-item"><button class="nav-link" id="admin-tab" data-bs-toggle="tab" data-bs-target="#admin">Admin Registration</button></li>
+        </ul>
+        
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="user">
+                <form id="userForm">
+                    <div class="mb-3"><label>Invite Token *</label><input type="text" id="inviteToken" class="form-control" placeholder="Enter 8-character token" required></div>
+                    <div class="mb-3"><label>Username *</label><input type="text" id="username" class="form-control" required></div>
+                    <div class="mb-3"><label>Email *</label><input type="email" id="email" class="form-control" required></div>
+                    <div class="mb-3"><label>Phone Number</label><input type="tel" id="phone" class="form-control" placeholder="0712345678"></div>
+                    <div class="mb-3"><label>Password *</label><input type="password" id="password" class="form-control" required></div>
+                    <div class="mb-3"><label>Confirm Password *</label><input type="password" id="confirmPassword" class="form-control" required></div>
+                    <button type="submit" class="btn btn-primary">Register as User</button>
+                </form>
             </div>
-
-            <!-- Tabs for Admin/User Registration -->
-            <ul class="nav nav-tabs" id="registerTab" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="user-tab" data-bs-toggle="tab" data-bs-target="#user" type="button" role="tab">
-                        <i class="bi bi-person"></i> Regular User
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="admin-tab" data-bs-toggle="tab" data-bs-target="#admin" type="button" role="tab">
-                        <i class="bi bi-shield-shield"></i> Admin / Group Admin
-                    </button>
-                </li>
-            </ul>
-
-            <div class="tab-content" id="registerTabContent">
-                <!-- Regular User Registration -->
-                <div class="tab-pane fade show active" id="user" role="tabpanel">
-                    <div id="userErrorMsg" class="alert alert-danger d-none mt-3"></div>
-                    <div id="userSuccessMsg" class="alert alert-success d-none mt-3"></div>
-                    <form id="userRegisterForm" class="mt-3">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Group Code *</label>
-                            <input type="text" id="userGroupCode" class="form-control" placeholder="Enter 6-digit group code" required>
-                            <small class="text-muted">Get this code from your group admin</small>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Username *</label>
-                            <input type="text" id="userUsername" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Email *</label>
-                            <input type="email" id="userEmail" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Phone Number *</label>
-                            <input type="tel" id="userPhone" class="form-control" placeholder="0712345678" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Password *</label>
-                            <input type="password" id="userPassword" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Confirm Password *</label>
-                            <input type="password" id="userConfirmPassword" class="form-control" required>
-                        </div>
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" id="userTerms" required>
-                            <label class="form-check-label">I agree to the Terms & Conditions</label>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Register as User</button>
-                    </form>
-                </div>
-
-                <!-- Admin Registration (No Group Code Required) -->
-                <div class="tab-pane fade" id="admin" role="tabpanel">
-                    <div class="alert alert-info mt-3">
-                        <i class="bi bi-info-circle"></i> Admins and Group Admins can register without a group code.
-                    </div>
-                    <div id="adminErrorMsg" class="alert alert-danger d-none"></div>
-                    <div id="adminSuccessMsg" class="alert alert-success d-none"></div>
-                    <form id="adminRegisterForm" class="mt-3">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Username *</label>
-                            <input type="text" id="adminUsername" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Email *</label>
-                            <input type="email" id="adminEmail" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Phone Number *</label>
-                            <input type="tel" id="adminPhone" class="form-control" placeholder="0712345678" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Password *</label>
-                            <input type="password" id="adminPassword" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Confirm Password *</label>
-                            <input type="password" id="adminConfirmPassword" class="form-control" required>
-                        </div>
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" id="adminTerms" required>
-                            <label class="form-check-label">I agree to the Terms & Conditions</label>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Register as Admin</button>
-                    </form>
-                </div>
-            </div>
-
-            <div class="text-center mt-4">
-                <a href="login.html" class="text-decoration-none">Already have an account? Login</a>
+            <div class="tab-pane fade" id="admin">
+                <form id="adminForm">
+                    <div class="mb-3"><label>Username *</label><input type="text" id="adminUsername" class="form-control" required></div>
+                    <div class="mb-3"><label>Email *</label><input type="email" id="adminEmail" class="form-control" required></div>
+                    <div class="mb-3"><label>Phone Number</label><input type="tel" id="adminPhone" class="form-control"></div>
+                    <div class="mb-3"><label>Password *</label><input type="password" id="adminPassword" class="form-control" required></div>
+                    <div class="mb-3"><label>Confirm Password *</label><input type="password" id="adminConfirmPassword" class="form-control" required></div>
+                    <button type="submit" class="btn btn-primary">Register as Admin</button>
+                </form>
             </div>
         </div>
+        <div class="text-center mt-3"><a href="login.html">Already have an account? Login</a></div>
     </div>
 
     <script>
-        const API_URL = "https://marafiki-backend.onrender.com/api";
-
-        // Helper function to show messages
-        function showMessage(elementId, message, type) {
-            const element = document.getElementById(elementId);
-            element.textContent = message;
-            element.className = `alert alert-${type}`;
-            element.classList.remove('d-none');
-            setTimeout(() => element.classList.add('d-none'), 5000);
-        }
-
-        // User Registration
-        document.getElementById('userRegisterForm').addEventListener('submit', async (e) => {
+        const API_URL = 'https://marafiki-backend.onrender.com/api';
+        
+        document.getElementById('userForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            const password = document.getElementById('userPassword').value;
-            const confirm = document.getElementById('userConfirmPassword').value;
-            
-            if (password !== confirm) {
-                showMessage('userErrorMsg', 'Passwords do not match!', 'danger');
-                return;
+            if (document.getElementById('password').value !== document.getElementById('confirmPassword').value) {
+                alert('Passwords do not match'); return;
             }
-            
             const data = {
-                username: document.getElementById('userUsername').value,
-                password: password,
-                email: document.getElementById('userEmail').value,
-                phone_number: document.getElementById('userPhone').value,
-                group_code: document.getElementById('userGroupCode').value.toUpperCase(),
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value,
+                email: document.getElementById('email').value,
+                phone_number: document.getElementById('phone').value,
+                invite_token: document.getElementById('inviteToken').value,
                 is_admin: false
             };
-            
-            try {
-                const response = await fetch(`${API_URL}/register/`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                
-                const result = await response.json();
-                
-                if (response.ok) {
-                    showMessage('userSuccessMsg', result.message, 'success');
-                    setTimeout(() => {
-                        window.location.href = 'login.html';
-                    }, 3000);
-                } else {
-                    showMessage('userErrorMsg', result.error || 'Registration failed', 'danger');
-                }
-            } catch (error) {
-                showMessage('userErrorMsg', 'Connection error. Please try again.', 'danger');
+            const response = await fetch(`${API_URL}/register/`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+            if (response.ok) {
+                document.getElementById('successMsg').innerHTML = result.message;
+                document.getElementById('successMsg').classList.remove('d-none');
+                setTimeout(() => window.location.href = 'login.html', 3000);
+            } else {
+                document.getElementById('errorMsg').innerHTML = result.error;
+                document.getElementById('errorMsg').classList.remove('d-none');
             }
         });
-
-        // Admin Registration (No Group Code Required)
-        document.getElementById('adminRegisterForm').addEventListener('submit', async (e) => {
+        
+        document.getElementById('adminForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            const password = document.getElementById('adminPassword').value;
-            const confirm = document.getElementById('adminConfirmPassword').value;
-            
-            if (password !== confirm) {
-                showMessage('adminErrorMsg', 'Passwords do not match!', 'danger');
-                return;
+            if (document.getElementById('adminPassword').value !== document.getElementById('adminConfirmPassword').value) {
+                alert('Passwords do not match'); return;
             }
-            
             const data = {
                 username: document.getElementById('adminUsername').value,
-                password: password,
+                password: document.getElementById('adminPassword').value,
                 email: document.getElementById('adminEmail').value,
                 phone_number: document.getElementById('adminPhone').value,
                 is_admin: true
             };
-            
-            try {
-                const response = await fetch(`${API_URL}/register/`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                
-                const result = await response.json();
-                
-                if (response.ok) {
-                    showMessage('adminSuccessMsg', result.message, 'success');
-                    setTimeout(() => {
-                        window.location.href = 'login.html';
-                    }, 3000);
-                } else {
-                    showMessage('adminErrorMsg', result.error || 'Registration failed', 'danger');
-                }
-            } catch (error) {
-                showMessage('adminErrorMsg', 'Connection error. Please try again.', 'danger');
+            const response = await fetch(`${API_URL}/register/`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+            if (response.ok) {
+                alert('Admin created! You can now login and create groups.');
+                window.location.href = 'login.html';
+            } else {
+                alert(result.error);
             }
         });
     </script>

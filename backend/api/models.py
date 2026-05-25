@@ -110,3 +110,29 @@ class AI_Prediction(models.Model):
     confidence_score = models.FloatField()
     trend = models.CharField(max_length=20)
     recommendation = models.TextField()
+
+class GroupInviteToken(models.Model):
+    """Unique invite tokens for group members"""
+    group = models.ForeignKey(ChamaGroup, on_delete=models.CASCADE, related_name='invite_tokens')
+    token = models.CharField(max_length=10, unique=True, blank=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_invites')
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    max_uses = models.IntegerField(default=1)
+    used_count = models.IntegerField(default=0)
+    
+    def save(self, *args, **kwargs):
+        if not self.token:
+            # Generate unique 8-character token
+            import secrets
+            import string
+            alphabet = string.ascii_uppercase + string.digits
+            self.token = ''.join(secrets.choice(alphabet) for _ in range(8))
+        super().save(*args, **kwargs)
+    
+    def is_valid(self):
+        return self.is_active and (self.expires_at is None or timezone.now() < self.expires_at) and (self.used_count < self.max_uses)
+    
+    def __str__(self):
+        return f"{self.token} - {self.group.group_name}"
