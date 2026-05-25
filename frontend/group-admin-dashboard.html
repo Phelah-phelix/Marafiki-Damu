@@ -7,24 +7,19 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
-        .navbar { background: #1a1a2e; color: white; padding: 15px 20px; }
-        .sidebar { position: fixed; left: 0; top: 60px; width: 250px; background: white; height: 100%; padding: 20px; box-shadow: 2px 0 5px rgba(0,0,0,0.1); }
-        .sidebar a { display: block; padding: 12px; color: #333; text-decoration: none; margin-bottom: 5px; border-radius: 8px; transition: all 0.3s; }
-        .sidebar a:hover { background: #e0e0e0; transform: translateX(5px); }
-        .sidebar a.active { background: #1a1a2e; color: white; }
-        .content { margin-left: 270px; padding: 20px; margin-top: 20px; }
-        .card { background: white; border-radius: 12px; padding: 25px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .btn-primary { background: #1a1a2e; border: none; padding: 10px 20px; border-radius: 8px; }
-        .btn-primary:hover { background: #16213e; }
-        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
-        .status-pending { background: #ffc107; color: #000; }
-        .status-approved { background: #28a745; color: white; }
-        .status-rejected { background: #dc3545; color: white; }
-        .request-card { border: 1px solid #e0e0e0; border-radius: 10px; padding: 15px; margin-bottom: 15px; border-left: 4px solid #ffc107; }
-        .request-card.approved { border-left-color: #28a745; }
-        .request-card.rejected { border-left-color: #dc3545; }
-        .form-control:focus { border-color: #1a1a2e; box-shadow: none; }
+        body { background: #f0f2f5; }
+        .navbar { background: #2c3e50; color: white; padding: 15px 20px; }
+        .sidebar { position: fixed; left: 0; top: 60px; width: 250px; background: white; height: 100%; padding: 20px; }
+        .sidebar a { display: block; padding: 12px; color: #333; text-decoration: none; margin-bottom: 5px; border-radius: 8px; cursor: pointer; }
+        .sidebar a:hover { background: #e0e0e0; }
+        .sidebar a.active { background: #2c3e50; color: white; }
+        .content { margin-left: 270px; padding: 20px; }
+        .card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .form-control { margin-bottom: 15px; }
+        .btn-submit { background: #2c3e50; color: white; border: none; padding: 10px 20px; border-radius: 8px; width: 100%; }
+        .status-pending { color: orange; }
+        .status-approved { color: green; }
+        .status-rejected { color: red; }
     </style>
 </head>
 <body>
@@ -34,71 +29,59 @@
     </div>
     
     <div class="sidebar">
-        <a href="#" class="active" onclick="showSection('dashboard')"><i class="bi bi-speedometer2"></i> Dashboard</a>
-        <a href="#" onclick="showSection('createGroup')"><i class="bi bi-plus-circle"></i> Request Group</a>
-        <a href="#" onclick="showSection('myRequests')"><i class="bi bi-clock-history"></i> My Requests</a>
-        <a href="#" onclick="showSection('members')"><i class="bi bi-people"></i> Members</a>
+        <a href="#" class="active" onclick="showSection('dashboard')">📊 Dashboard</a>
+        <a href="#" onclick="showSection('createGroup')">➕ Request Group</a>
+        <a href="#" onclick="showSection('myRequests')">📋 My Requests</a>
         <hr>
-        <a href="#" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Logout</a>
+        <a href="#" onclick="logout()">🚪 Logout</a>
     </div>
     
     <div class="content">
-        <!-- Dashboard Section -->
         <div id="dashboardSection">
             <h2>Admin Dashboard</h2>
-            <div id="groupInfo"></div>
+            <div id="groupInfo" class="card">Loading...</div>
         </div>
         
-        <!-- Create Group Request Section -->
         <div id="createGroupSection" style="display: none;">
             <div class="card">
-                <h3><i class="bi bi-send"></i> Request New Group</h3>
-                <p class="text-muted">Submit a request to Super Admin to create a new chama group</p>
+                <h3>Request New Group</h3>
+                <p class="text-muted">Submit a request to Super Admin to create a new group</p>
                 <hr>
                 <form id="requestForm">
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Group Name *</label>
-                        <input type="text" id="groupName" class="form-control" placeholder="e.g., Youth Empowerment Chama" required>
+                        <label class="form-label">Group Name *</label>
+                        <input type="text" id="groupName" class="form-control" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Description</label>
-                        <textarea id="description" class="form-control" rows="3" placeholder="Describe the purpose of this group..."></textarea>
+                        <label class="form-label">Description</label>
+                        <textarea id="description" class="form-control" rows="3"></textarea>
                     </div>
                     <div class="row">
                         <div class="col-md-4 mb-3">
-                            <label class="form-label fw-bold">Weekly Goal (KES)</label>
+                            <label class="form-label">Weekly Goal (KES)</label>
                             <input type="number" id="weeklyGoal" class="form-control" value="100">
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label class="form-label fw-bold">Daily Contribution (KES)</label>
+                            <label class="form-label">Daily Contribution (KES)</label>
                             <input type="number" id="dailyContribution" class="form-control" value="10">
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label class="form-label fw-bold">Max Members</label>
+                            <label class="form-label">Max Members</label>
                             <input type="number" id="maxMembers" class="form-control" value="50">
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Notes for Super Admin</label>
-                        <textarea id="adminNotes" class="form-control" rows="2" placeholder="Any additional information for the Super Admin..."></textarea>
+                        <label class="form-label">Notes for Super Admin</label>
+                        <textarea id="adminNotes" class="form-control" rows="2"></textarea>
                     </div>
-                    <button type="submit" class="btn-primary btn" id="submitBtn">
-                        <i class="bi bi-send"></i> Send Request to Super Admin
-                    </button>
+                    <button type="submit" class="btn-submit" id="submitBtn">Send Request to Super Admin</button>
                 </form>
             </div>
         </div>
         
-        <!-- My Requests Section -->
         <div id="myRequestsSection" style="display: none;">
-            <h3>My Group Creation Requests</h3>
-            <div id="requestsList"></div>
-        </div>
-        
-        <!-- Members Section -->
-        <div id="membersSection" style="display: none;">
-            <h3>Group Members</h3>
-            <div id="membersList"></div>
+            <h3>My Requests</h3>
+            <div id="requestsList">Loading...</div>
         </div>
     </div>
 
@@ -112,37 +95,31 @@
             if (!token) { window.location.href = 'login.html'; return; }
             
             try {
-                const res = await fetch(`${API_URL}/group-admin/dashboard/`, {
+                const response = await fetch(`${API_URL}/group-admin/dashboard/`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                const data = await res.json();
+                const data = await response.json();
                 
                 if (data.group) {
                     document.getElementById('groupInfo').innerHTML = `
-                        <div class="card">
-                            <h4><i class="bi bi-building"></i> ${data.group.name}</h4>
-                            <p><strong>Invite Code:</strong> <code class="bg-light p-2">${data.group.code}</code></p>
-                            <p><strong>Weekly Goal:</strong> KES ${data.group.weekly_goal}</p>
-                            <p><strong>Active Members:</strong> ${data.statistics.approved_members}</p>
-                            <p><strong>Total Raised:</strong> KES ${data.statistics.total_raised}</p>
-                        </div>
+                        <h4>${data.group.name}</h4>
+                        <p>Invite Code: <strong>${data.group.code}</strong></p>
+                        <p>Weekly Goal: KES ${data.group.weekly_goal}</p>
+                        <p>Active Members: ${data.statistics.approved_members}</p>
                     `;
                 } else {
                     document.getElementById('groupInfo').innerHTML = `
-                        <div class="card text-center">
-                            <i class="bi bi-building" style="font-size: 48px; color: #ccc;"></i>
-                            <h4>No Group Assigned Yet</h4>
-                            <p>You need to request a group from the Super Admin</p>
-                            <button class="btn-primary btn" onclick="showSection('createGroup')">Request a Group</button>
-                        </div>
+                        <p>No group assigned yet.</p>
+                        <button class="btn-submit" onclick="showSection('createGroup')">Request a Group</button>
                     `;
                 }
             } catch (error) {
                 console.error(error);
+                document.getElementById('groupInfo').innerHTML = '<p>Error loading dashboard</p>';
             }
         }
         
-        // Submit group creation request
+        // Submit group request
         document.getElementById('requestForm')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const token = getToken();
@@ -151,17 +128,17 @@
             const requestData = {
                 group_name: document.getElementById('groupName').value,
                 description: document.getElementById('description').value,
-                weekly_goal: document.getElementById('weeklyGoal').value,
-                daily_contribution: document.getElementById('dailyContribution').value,
-                max_members: document.getElementById('maxMembers').value,
+                weekly_goal: parseInt(document.getElementById('weeklyGoal').value),
+                daily_contribution: parseInt(document.getElementById('dailyContribution').value),
+                max_members: parseInt(document.getElementById('maxMembers').value),
                 admin_notes: document.getElementById('adminNotes').value
             };
             
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sending...';
+            submitBtn.textContent = 'Sending...';
             
             try {
-                const res = await fetch(`${API_URL}/admin/send-group-request/`, {
+                const response = await fetch(`${API_URL}/admin/send-group-request/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -170,55 +147,42 @@
                     body: JSON.stringify(requestData)
                 });
                 
-                const data = await res.json();
+                const data = await response.json();
                 
-                if (res.ok) {
-                    alert('✅ ' + data.message);
+                if (response.ok) {
+                    alert(data.message);
                     document.getElementById('requestForm').reset();
                     showSection('myRequests');
                     loadMyRequests();
                 } else {
-                    alert('❌ Error: ' + (data.error || data.message));
+                    alert('Error: ' + (data.error || data.message));
                 }
             } catch (error) {
-                alert('❌ Error sending request: ' + error.message);
+                alert('Error: ' + error.message);
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="bi bi-send"></i> Send Request to Super Admin';
+                submitBtn.textContent = 'Send Request to Super Admin';
             }
         });
         
         async function loadMyRequests() {
             const token = getToken();
             try {
-                const res = await fetch(`${API_URL}/admin/my-requests/`, {
+                const response = await fetch(`${API_URL}/admin/my-requests/`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                const requests = await res.json();
+                const requests = await response.json();
                 
                 if (requests.length === 0) {
-                    document.getElementById('requestsList').innerHTML = `
-                        <div class="card text-center">
-                            <i class="bi bi-inbox" style="font-size: 48px; color: #ccc;"></i>
-                            <p>No requests submitted yet</p>
-                            <button class="btn-primary btn" onclick="showSection('createGroup')">Create Your First Request</button>
-                        </div>
-                    `;
+                    document.getElementById('requestsList').innerHTML = '<div class="card">No requests submitted yet</div>';
                 } else {
                     document.getElementById('requestsList').innerHTML = requests.map(r => `
-                        <div class="request-card ${r.status}">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <strong><i class="bi bi-building"></i> ${r.group_name}</strong>
-                                    <span class="status-badge status-${r.status} ms-2">${r.status.toUpperCase()}</span>
-                                </div>
-                                <small class="text-muted">${r.created_at}</small>
-                            </div>
-                            <div class="mt-2">
-                                <small>Goal: KES ${r.weekly_goal} | Daily: KES ${r.daily_contribution}</small>
-                            </div>
-                            ${r.superadmin_notes ? `<div class="mt-2 alert alert-info small">📝 Super Admin: ${r.superadmin_notes}</div>` : ''}
-                            ${r.status === 'approved' && r.group_code ? `<div class="mt-2 alert alert-success">🎉 Group Approved! Code: <strong>${r.group_code}</strong></div>` : ''}
+                        <div class="card">
+                            <strong>${r.group_name}</strong>
+                            <span class="status-${r.status}">${r.status.toUpperCase()}</span>
+                            <p>Goal: KES ${r.weekly_goal} | Daily: KES ${r.daily_contribution}</p>
+                            <p><small>Requested: ${r.created_at}</small></p>
+                            ${r.superadmin_notes ? `<p><strong>Response:</strong> ${r.superadmin_notes}</p>` : ''}
                         </div>
                     `).join('');
                 }
@@ -231,22 +195,24 @@
             document.getElementById('dashboardSection').style.display = 'none';
             document.getElementById('createGroupSection').style.display = 'none';
             document.getElementById('myRequestsSection').style.display = 'none';
-            document.getElementById('membersSection').style.display = 'none';
             document.getElementById(`${section}Section`).style.display = 'block';
-            
-            // Update active sidebar
-            document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
-            event.target.classList.add('active');
             
             if (section === 'myRequests') loadMyRequests();
         }
         
         function logout() {
             localStorage.removeItem('access_token');
+            localStorage.removeItem('user');
             window.location.href = 'login.html';
         }
         
-        loadDashboard();
+        // Check auth on load
+        const token = getToken();
+        if (!token) {
+            window.location.href = 'login.html';
+        } else {
+            loadDashboard();
+        }
     </script>
 </body>
 </html>

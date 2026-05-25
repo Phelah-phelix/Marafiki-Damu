@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Marafiki Damu</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -19,7 +20,7 @@
             padding: 40px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             width: 100%;
-            max-width: 400px;
+            max-width: 450px;
         }
         .btn-login {
             background: linear-gradient(135deg, #667eea, #764ba2);
@@ -30,39 +31,56 @@
             font-weight: bold;
             border-radius: 10px;
         }
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102,126,234,0.25);
+        }
     </style>
 </head>
 <body>
     <div class="login-card">
         <div class="text-center mb-4">
             <i class="bi bi-heart-fill text-danger" style="font-size: 3rem;"></i>
-            <h2>Marafiki Damu</h2>
+            <h2 class="mt-2">Marafiki Damu</h2>
+            <p class="text-muted">Login to your account</p>
         </div>
+        
         <div id="errorMsg" class="alert alert-danger" style="display: none;"></div>
+        <div id="loadingMsg" class="alert alert-info" style="display: none;">Logging in...</div>
+        
         <form id="loginForm">
             <div class="mb-3">
-                <label>Username</label>
+                <label class="form-label">Username</label>
                 <input type="text" id="username" class="form-control" required>
             </div>
             <div class="mb-3">
-                <label>Password</label>
+                <label class="form-label">Password</label>
                 <input type="password" id="password" class="form-control" required>
             </div>
-            <button type="submit" class="btn-login">Login</button>
+            <button type="submit" class="btn-login" id="loginBtn">Login</button>
         </form>
+        
         <div class="text-center mt-3">
             <a href="register.html">Don't have an account? Register</a>
         </div>
     </div>
 
     <script>
-        const API_URL = "https://marafiki-backend.onrender.com/api";
+        const API_URL = 'https://marafiki-backend.onrender.com/api';
         
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('loginBtn');
+            const errorMsg = document.getElementById('errorMsg');
+            const loadingMsg = document.getElementById('loadingMsg');
+            
+            // Show loading
+            loginBtn.disabled = true;
+            loadingMsg.style.display = 'block';
+            errorMsg.style.display = 'none';
             
             try {
                 const response = await fetch(`${API_URL}/login/`, {
@@ -74,8 +92,13 @@
                 const data = await response.json();
                 
                 if (response.ok) {
+                    // Store token and user info
                     localStorage.setItem('access_token', data.access);
+                    localStorage.setItem('user', JSON.stringify(data.user));
                     
+                    console.log('Login successful:', data.user);
+                    
+                    // Redirect based on role
                     if (data.user.role === 'superadmin') {
                         window.location.href = 'superadmin-dashboard.html';
                     } else if (data.user.role === 'group_admin') {
@@ -84,16 +107,18 @@
                         window.location.href = 'dashboard.html';
                     }
                 } else {
-                    const errorDiv = document.getElementById('errorMsg');
-                    errorDiv.textContent = data.error || 'Login failed';
-                    errorDiv.style.display = 'block';
-                    setTimeout(() => errorDiv.style.display = 'none', 3000);
+                    errorMsg.textContent = data.error || 'Invalid credentials';
+                    errorMsg.style.display = 'block';
+                    loginBtn.disabled = false;
                 }
             } catch (error) {
-                alert('Connection error. Make sure backend is running on port 8000');
+                errorMsg.textContent = 'Connection error. Please try again.';
+                errorMsg.style.display = 'block';
+                loginBtn.disabled = false;
+            } finally {
+                loadingMsg.style.display = 'none';
             }
         });
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
