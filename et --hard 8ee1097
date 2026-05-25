@@ -1,0 +1,10 @@
+[33m4bbcdf9[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m Fix: Add missing forgot_password and reset_password views
+[33m5110207[m Fix: Add missing permissions imports in views.py
+[33mff7f5d8[m Add complete permissions system: Super Admin, Group Admin, Member roles
+[33mc852625[m Restore professional admin dashboards with modern UI
+[33m4a96e78[m Fix: Add missing timedelta import
+[33me2292b3[m Fix: Add missing timedelta import in settings.py
+[33m10040b6[m Fix: Add djangorestframework-simplejwt and fix API URLs
+[33md1b8948[m Feature: Admins can register without group code; separate tabs for Admin/User registration
+[33mb7d15bd[m Feature: Admins can register without group code; separate tabs for Admin/User registration
+[33mebbbc8a[m Fix: Add missing SessionMiddleware to settings.py

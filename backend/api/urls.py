@@ -2,16 +2,12 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    # Health Check
     path('health/', views.health_check, name='health'),
-    
-    # Authentication
     path('register/', views.register_user, name='register'),
     path('login/', views.login_user, name='login'),
     path('forgot-password/', views.forgot_password, name='forgot-password'),
     path('reset-password/', views.reset_password, name='reset-password'),
     
-    # Super Admin Only
     path('superadmin/groups/', views.superadmin_get_all_groups, name='superadmin-groups'),
     path('superadmin/create-group/', views.superadmin_create_group, name='superadmin-create-group'),
     path('superadmin/assign-admin/', views.superadmin_assign_group_admin, name='superadmin-assign-admin'),
@@ -20,15 +16,11 @@ urlpatterns = [
     path('superadmin/approve-request/<int:request_id>/', views.superadmin_approve_admin_request, name='superadmin-approve-request'),
     path('superadmin/reject-request/<int:request_id>/', views.superadmin_reject_request, name='superadmin-reject-request'),
     
-    # Group Admin
-    path('group-admin/create-group/', views.group_admin_create_group, name='group-admin-create-group'),
-    path('group-admin/my-groups/', views.group_admin_get_my_groups, name='group-admin-my-groups'),
     path('group-admin/dashboard/', views.group_admin_dashboard, name='group-admin-dashboard'),
     path('group-admin/approve/<int:member_id>/', views.group_admin_approve_member, name='group-admin-approve'),
     path('group-admin/reject/<int:member_id>/', views.group_admin_reject_member, name='group-admin-reject'),
     path('group-admin/settings/', views.group_admin_update_settings, name='group-admin-settings'),
     
-    # User (Member)
     path('dashboard/', views.user_dashboard, name='user-dashboard'),
     path('contribute/', views.add_contribution, name='contribute'),
     path('mpesa-payment/', views.mpesa_payment, name='mpesa-payment'),

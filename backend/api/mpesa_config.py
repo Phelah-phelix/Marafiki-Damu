@@ -10,9 +10,9 @@ class MpesaSTKPush:
     def __init__(self):
         # M-Pesa Daraja API Credentials
         # You need to register on Safaricom Daraja Portal to get these
-        self.consumer_key = "YOUR_CONSUMER_KEY"  # Get from Daraja portal
-        self.consumer_secret = "YOUR_CONSUMER_SECRET"  # Get from Daraja portal
-        self.passkey = "YOUR_PASSKEY"  # Get from Daraja portal
+        self.consumer_key = "zmBmHC7RbNasyYmIm440LLI8LGlXvR7vZadWOKvlreXAl3AD " # Get from Daraja portal
+        self.consumer_secret = "ndA7Zfxd3lX6W0rN9zC72y9aeqnfgcqZFtCeiGIhTCw4cZVvGOUMaTA57kyxd4F1" # Get from Daraja portal
+        self.passkey = "Vujo6/FY7RKMy5PhQludvjuSP8pqv+Mj4cuSM0soFzqtgj1hWaRtFZTytec3refCn7fsWi+PPtF9gSHukF5qm+Vo7ww1CvGCDuCoVNq/ajOl3heRUvsQeBU1EDJTL7pxAJfKQ0v1ec+9o32HxFs7trLMcJ3ebjodQ9D8yexanfcfPgUzxoerYYrufPHy62frhYj+p/1k6LHy/jqejTtxrag9au2Yp/ZLAbLXOCJ0gNqxwLvnTetSmEsztApdg/Ce9VE/mLUF/lrxhFc1ZXbCLe/sdvYBkzONxL7s32/O1Nwv4M2nqx5qlketqwkLqWMW1AwTHLISYRKNLugjUnHu2A=="  # Get from Daraja portal
         self.shortcode = "1027027"  # Your Paybill number
         self.env = "sandbox"  # sandbox for testing, production for live
         
