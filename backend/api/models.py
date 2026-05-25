@@ -146,3 +146,29 @@ class AI_Prediction(models.Model):
     confidence_score = models.FloatField()
     trend = models.CharField(max_length=20)
     recommendation = models.TextField()
+
+class GroupRequest(models.Model):
+    """Group creation request from Admin to Super Admin"""
+    STATUS_CHOICES = [
+        ('pending', 'Pending Approval'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('in_review', 'In Review'),
+    ]
+    
+    requester = models.ForeignKey(User, on_delete=models.CASCADE, related_name='group_requests')
+    group_name = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
+    weekly_goal = models.DecimalField(max_digits=10, decimal_places=2, default=100)
+    daily_contribution = models.DecimalField(max_digits=10, decimal_places=2, default=10)
+    max_members = models.IntegerField(default=50)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    admin_notes = models.TextField(blank=True, null=True)
+    superadmin_notes = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_requests')
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    
+    def __str__(self):
+        return f"{self.requester.username} - {self.group_name} - {self.status}"
