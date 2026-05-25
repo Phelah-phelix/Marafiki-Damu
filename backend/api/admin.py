@@ -1,11 +1,17 @@
 from django.contrib import admin
-from .models import ChamaGroup, GroupAdmin, Member, Contribution, WeeklyProgress, AdminRequest
+from .models import ChamaGroup, GroupCreationRequest, GroupAdmin, Member, Contribution, WeeklyProgress, PasswordResetToken
 
 @admin.register(ChamaGroup)
 class ChamaGroupAdmin(admin.ModelAdmin):
-    list_display = ['group_name', 'group_code', 'weekly_goal', 'is_active', 'created_at']
+    list_display = ['group_name', 'group_code', 'is_active', 'is_approved', 'created_at']
     search_fields = ['group_name', 'group_code']
     readonly_fields = ['group_code', 'created_at']
+
+@admin.register(GroupCreationRequest)
+class GroupCreationRequestAdmin(admin.ModelAdmin):
+    list_display = ['requester', 'group_name', 'status', 'created_at']
+    list_filter = ['status']
+    search_fields = ['requester__username', 'group_name']
 
 @admin.register(GroupAdmin)
 class GroupAdminAdmin(admin.ModelAdmin):
@@ -14,8 +20,8 @@ class GroupAdminAdmin(admin.ModelAdmin):
 
 @admin.register(Member)
 class MemberAdmin(admin.ModelAdmin):
-    list_display = ['user', 'member_number', 'group', 'status', 'is_group_admin', 'total_contributed']
-    list_filter = ['status', 'group', 'is_group_admin']
+    list_display = ['user', 'member_number', 'group', 'status', 'total_contributed']
+    list_filter = ['status', 'group']
     search_fields = ['user__username', 'phone_number']
     actions = ['approve_members']
     
@@ -32,10 +38,7 @@ class ContributionAdmin(admin.ModelAdmin):
 @admin.register(WeeklyProgress)
 class WeeklyProgressAdmin(admin.ModelAdmin):
     list_display = ['member', 'week_start_date', 'total_contributed', 'is_completed']
-    list_filter = ['is_completed', 'week_start_date']
 
-@admin.register(AdminRequest)
-class AdminRequestAdmin(admin.ModelAdmin):
-    list_display = ['requester', 'request_type', 'group_name', 'status', 'created_at']
-    list_filter = ['status', 'request_type']
-    search_fields = ['requester__username']
+@admin.register(PasswordResetToken)
+class PasswordResetTokenAdmin(admin.ModelAdmin):
+    list_display = ['user', 'created_at', 'expires_at', 'is_used']
