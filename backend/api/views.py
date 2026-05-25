@@ -13,7 +13,6 @@ import json
 from decimal import Decimal
 from .models import ChamaGroup, GroupAdmin, Member, Contribution, WeeklyProgress, AdminRequest, PasswordResetToken
 from .permissions import IsSuperAdmin, IsGroupAdmin, IsGroupMember
-
 # Helper function
 def get_ai_prediction(member):
     return {
@@ -22,15 +21,12 @@ def get_ai_prediction(member):
         'trend': 'improving',
         'recommendation': 'Keep saving consistently! You are doing great!'
     }
-
 # Health Check
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def health_check(request):
     return Response({'status': 'ok', 'message': 'Marafiki Damu API is running!'})
-
 # ==================== AUTHENTICATION VIEWS ====================
-
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register_user(request):
@@ -61,7 +57,6 @@ def register_user(request):
     member = Member.objects.create(user=user, group=group, phone_number=phone_number, status='pending')
     
     return Response({'message': f'Registered! Waiting for approval to join {group.group_name}'})
-
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login_user(request):
@@ -85,7 +80,6 @@ def login_user(request):
         return Response({'access': str(refresh.access_token), 'user': {'id': user.id, 'username': user.username, 'role': 'member', 'member_number': member.member_number}})
     except Member.DoesNotExist:
         return Response({'error': 'No profile found'}, status=status.HTTP_404_NOT_FOUND)
-
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def forgot_password(request):
@@ -99,7 +93,6 @@ def forgot_password(request):
         return Response({'message': 'Reset link sent', 'token': token.token})
     except User.DoesNotExist:
         return Response({'message': 'If account exists, reset link sent'})
-
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def reset_password(request):
@@ -119,9 +112,7 @@ def reset_password(request):
         return Response({'message': 'Password reset successful'})
     except PasswordResetToken.DoesNotExist:
         return Response({'error': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
-
 # ==================== SUPER ADMIN VIEWS ====================
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsSuperAdmin])
 def superadmin_get_all_groups(request):
@@ -139,7 +130,6 @@ def superadmin_get_all_groups(request):
             'is_active': group.is_active
         })
     return Response(data)
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsSuperAdmin])
 def superadmin_create_group(request):
@@ -152,7 +142,6 @@ def superadmin_create_group(request):
         is_active=True, created_by=request.user
     )
     return Response({'message': f'Group "{group.group_name}" created!', 'group_code': group.group_code, 'group_id': group.id})
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsSuperAdmin])
 def superadmin_assign_group_admin(request):
@@ -168,7 +157,6 @@ def superadmin_assign_group_admin(request):
         group_admin.managed_group = group
         group_admin.save()
     return Response({'message': f'{user.username} is now admin of {group.group_name}', 'group_code': group.group_code})
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsSuperAdmin])
 def superadmin_approve_member(request, member_id):
@@ -180,14 +168,12 @@ def superadmin_approve_member(request, member_id):
     member.approved_by = request.user
     member.save()
     return Response({'message': f'Member #{member.member_number} approved'})
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsSuperAdmin])
 def superadmin_get_pending_requests(request):
     requests = AdminRequest.objects.filter(status='pending')
     data = [{'id': r.id, 'requester': r.requester.username, 'requester_email': r.requester.email, 'request_type': r.request_type, 'group_name': r.group_name, 'created_at': r.created_at.strftime('%Y-%m-%d %H:%M')} for r in requests]
     return Response(data)
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsSuperAdmin])
 def superadmin_approve_admin_request(request, request_id):
@@ -207,7 +193,6 @@ def superadmin_approve_admin_request(request, request_id):
     admin_request.reviewed_at = timezone.now()
     admin_request.save()
     return Response({'message': f'Admin request approved for {user.username}', 'group_code': group.group_code})
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsSuperAdmin])
 def superadmin_reject_request(request, request_id):
@@ -220,9 +205,7 @@ def superadmin_reject_request(request, request_id):
     admin_request.reviewed_at = timezone.now()
     admin_request.save()
     return Response({'message': 'Request rejected'})
-
 # ==================== GROUP ADMIN VIEWS ====================
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def group_admin_dashboard(request):
@@ -249,7 +232,6 @@ def group_admin_dashboard(request):
         'pending_members': [{'id': m.id, 'username': m.user.username, 'email': m.user.email, 'phone': m.phone_number} for m in pending_members],
         'members': members_data
     })
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def group_admin_approve_member(request, member_id):
@@ -262,7 +244,6 @@ def group_admin_approve_member(request, member_id):
     member.approved_by = request.user
     member.save()
     return Response({'message': f'Member #{member.member_number} approved'})
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def group_admin_reject_member(request, member_id):
@@ -274,7 +255,6 @@ def group_admin_reject_member(request, member_id):
     member.status = 'rejected'
     member.save()
     return Response({'message': 'Member rejected'})
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def group_admin_update_settings(request):
@@ -288,9 +268,7 @@ def group_admin_update_settings(request):
     group.description = request.data.get('description', group.description)
     group.save()
     return Response({'message': 'Settings updated'})
-
 # ==================== REGULAR USER VIEWS ====================
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def user_dashboard(request):
@@ -324,7 +302,6 @@ def user_dashboard(request):
         'recent_contributions': [{'amount': float(c.amount), 'date': c.date.strftime('%Y-%m-%d'), 'transaction_id': c.transaction_id[:12]} for c in recent],
         'total_members': members.count()
     })
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def add_contribution(request):
@@ -348,7 +325,6 @@ def add_contribution(request):
     weekly.save()
     
     return Response({'message': f'Contributed KES {amount}!', 'amount': float(amount), 'new_total': float(member.total_contributed)})
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def mpesa_payment(request):
@@ -356,7 +332,6 @@ def mpesa_payment(request):
     if phone.startswith('0'):
         phone = '254' + phone[1:]
     return Response({'success': True, 'message': f'STK Push sent to {phone}'})
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def request_to_become_admin(request):
@@ -366,10 +341,8 @@ def request_to_become_admin(request):
         return Response({'error': 'Member not found'}, status=status.HTTP_404_NOT_FOUND)
     admin_request = AdminRequest.objects.create(requester=request.user, request_type='group_admin', status='pending')
     return Response({'message': 'Request sent to Super Admin', 'request_id': admin_request.id})
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def request_to_create_group(request):
     admin_request = AdminRequest.objects.create(requester=request.user, request_type='create_group', group_name=request.data.get('group_name'), group_description=request.data.get('description', ''), status='pending')
     return Response({'message': 'Group creation request sent', 'request_id': admin_request.id})
-E
