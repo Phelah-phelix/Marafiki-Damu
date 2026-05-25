@@ -28,10 +28,12 @@
         .card { background: white; border-radius: 12px; border: 1px solid #e0e0e0; overflow: hidden; margin-bottom: 24px; }
         .card-header { padding: 16px 20px; border-bottom: 1px solid #e0e0e0; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
         .card-body { padding: 20px; }
-        .group-item, .request-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #e0e0e0; }
-        .badge-pending { background: #f39c12; color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
-        .btn-approve { background: #27ae60; color: white; border: none; padding: 4px 12px; border-radius: 6px; font-size: 12px; margin-right: 8px; cursor: pointer; }
-        .btn-reject { background: #e74c3c; color: white; border: none; padding: 4px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+        .request-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid #e0e0e0; }
+        .badge-pending { background: #f39c12; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; }
+        .btn-approve { background: #27ae60; color: white; border: none; padding: 6px 20px; border-radius: 6px; font-size: 13px; margin-right: 8px; cursor: pointer; }
+        .btn-reject { background: #e74c3c; color: white; border: none; padding: 6px 20px; border-radius: 6px; font-size: 13px; cursor: pointer; }
+        .alert-success { background: #d4edda; color: #155724; padding: 12px; border-radius: 8px; margin-bottom: 16px; }
+        .alert-danger { background: #f8d7da; color: #721c24; padding: 12px; border-radius: 8px; margin-bottom: 16px; }
         @media (max-width: 768px) { .sidebar { display: none; } .main-content { margin-left: 0; } }
     </style>
 </head>
@@ -41,19 +43,36 @@
         <a class="nav-item active" onclick="showSection('dashboard')"><i class="bi bi-speedometer2"></i> Dashboard</a>
         <a class="nav-item" onclick="showSection('groups')"><i class="bi bi-people"></i> All Groups</a>
         <a class="nav-item" onclick="showSection('groupRequests')"><i class="bi bi-plus-circle"></i> Group Creation Requests</a>
-        <a class="nav-item" onclick="showSection('adminRequests')"><i class="bi bi-envelope"></i> Admin Requests</a>
         <div style="margin-top: auto; padding-top: 40px;"><a class="nav-item" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Logout</a></div>
     </div>
     <div class="main-content">
-        <div id="dashboardSection"><div style="margin-bottom: 24px;"><h1 style="font-size: 24px; font-weight: 600;">Super Admin Dashboard</h1><p style="color: #666;">Full system control</p></div><div class="stats-grid" id="statsGrid"></div><div class="card"><div class="card-header">Groups Overview</div><div class="card-body"><canvas id="groupsChart" height="300"></canvas></div></div></div>
-        <div id="groupsSection" style="display: none;"><div class="card"><div class="card-header">All Groups</div><div class="card-body" id="groupsList"></div></div></div>
-        <div id="groupRequestsSection" style="display: none;"><div class="card"><div class="card-header">Pending Group Creation Requests</div><div class="card-body" id="groupRequestsList"></div></div></div>
-        <div id="adminRequestsSection" style="display: none;"><div class="card"><div class="card-header">Pending Admin Requests</div><div class="card-body" id="adminRequestsList"></div></div></div>
+        <div id="alertContainer"></div>
+        
+        <div id="dashboardSection">
+            <div style="margin-bottom: 24px;"><h1 style="font-size: 24px; font-weight: 600;">Super Admin Dashboard</h1><p style="color: #666;">Full system control</p></div>
+            <div class="stats-grid" id="statsGrid"></div>
+            <div class="card"><div class="card-header">Groups Overview</div><div class="card-body"><canvas id="groupsChart" height="300"></canvas></div></div>
+        </div>
+        
+        <div id="groupsSection" style="display: none;">
+            <div class="card"><div class="card-header">All Groups</div><div class="card-body" id="groupsList"></div></div>
+        </div>
+        
+        <div id="groupRequestsSection" style="display: none;">
+            <div class="card"><div class="card-header">Pending Group Creation Requests</div><div class="card-body" id="groupRequestsList"></div></div>
+        </div>
     </div>
     <script>
         const API_URL = 'https://marafiki-backend.onrender.com/api';
         let groupsChart = null;
+        
         function getToken() { return localStorage.getItem('access_token'); }
+        
+        function showAlert(message, type) {
+            const container = document.getElementById('alertContainer');
+            container.innerHTML = `<div class="alert-${type}" style="background: ${type === 'success' ? '#d4edda' : '#f8d7da'}; color: ${type === 'success' ? '#155724' : '#721c24'}; padding: 12px; border-radius: 8px; margin-bottom: 16px;">${message}</div>`;
+            setTimeout(() => container.innerHTML = '', 5000);
+        }
         
         async function loadDashboard() {
             const token = getToken();
@@ -64,39 +83,79 @@
                 const totalGroups = groups.length;
                 const totalMembers = groups.reduce((s,g) => s + g.member_count, 0);
                 document.getElementById('statsGrid').innerHTML = `<div class="stat-card"><div class="label">Total Groups</div><div class="value">${totalGroups}</div></div><div class="stat-card"><div class="label">Total Members</div><div class="value">${totalMembers}</div></div><div class="stat-card"><div class="label">Pending Group Requests</div><div class="value" id="pendingGroupCount">0</div></div>`;
+                
                 if (groupsChart) groupsChart.destroy();
                 const ctx = document.getElementById('groupsChart').getContext('2d');
                 groupsChart = new Chart(ctx, { type: 'bar', data: { labels: groups.map(g => g.name.length > 20 ? g.name.slice(0,20)+'...' : g.name), datasets: [{ label: 'Members', data: groups.map(g => g.member_count), backgroundColor: '#1a1a2e', borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
-                document.getElementById('groupsList').innerHTML = groups.map(g => `<div class="group-item"><div><div class="group-name">${g.name}</div><div class="group-code">${g.code}</div></div><div><span class="badge-pending">${g.member_count} members</span></div></div>`).join('');
+                document.getElementById('groupsList').innerHTML = groups.map(g => `<div class="request-item"><div><strong>${g.name}</strong><br><small>Code: ${g.code}</small><br><small>Members: ${g.member_count}</small></div><div><span class="badge-pending">${g.is_active ? 'Active' : 'Inactive'}</span></div></div>`).join('');
                 await loadGroupRequests();
-                await loadAdminRequests();
             } catch (error) { console.error(error); }
         }
         
         async function loadGroupRequests() {
             const token = getToken();
-            const res = await fetch(`${API_URL}/superadmin/pending-group-requests/`, { headers: { 'Authorization': `Bearer ${token}` } });
-            const requests = await res.json();
-            document.getElementById('pendingGroupCount').innerText = requests.length;
-            document.getElementById('groupRequestsList').innerHTML = requests.map(r => `<div class="request-item"><div><strong>${r.group_name}</strong><br><small>Requested by: ${r.requester} (${r.requester_email})</small><br><small>Goal: KES ${r.weekly_goal} | Daily: KES ${r.daily_contribution}</small><br><small>${r.description || 'No description'}</small></div><div><button class="btn-approve" onclick="approveGroupRequest(${r.id})">Approve</button><button class="btn-reject" onclick="rejectGroupRequest(${r.id})">Reject</button></div></div>`).join('');
-            if (requests.length === 0) document.getElementById('groupRequestsList').innerHTML = '<div style="text-align: center; padding: 40px; color: #888;">No pending group creation requests</div>';
+            try {
+                const res = await fetch(`${API_URL}/superadmin/pending-group-requests/`, { headers: { 'Authorization': `Bearer ${token}` } });
+                const requests = await res.json();
+                document.getElementById('pendingGroupCount').innerText = requests.length;
+                
+                if (requests.length === 0) {
+                    document.getElementById('groupRequestsList').innerHTML = '<div style="text-align: center; padding: 40px; color: #888;">No pending group creation requests</div>';
+                } else {
+                    document.getElementById('groupRequestsList').innerHTML = requests.map(r => `
+                        <div class="request-item">
+                            <div>
+                                <strong style="font-size: 16px;">${r.group_name}</strong><br>
+                                <small>Requested by: ${r.requester} (${r.requester_email})</small><br>
+                                <small>Weekly Goal: KES ${r.weekly_goal} | Daily: KES ${r.daily_contribution}</small><br>
+                                <small>${r.description || 'No description provided'}</small><br>
+                                <small>Requested on: ${r.created_at}</small>
+                            </div>
+                            <div>
+                                <button class="btn-approve" onclick="approveGroupRequest(${r.id})">Approve</button>
+                                <button class="btn-reject" onclick="rejectGroupRequest(${r.id})">Reject</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading requests:', error);
+                document.getElementById('groupRequestsList').innerHTML = '<div style="text-align: center; padding: 40px; color: #888;">Error loading requests</div>';
+            }
         }
         
-        async function loadAdminRequests() {
+        async function approveGroupRequest(id) {
             const token = getToken();
-            const res = await fetch(`${API_URL}/superadmin/pending-requests/`, { headers: { 'Authorization': `Bearer ${token}` } });
-            const requests = await res.json();
-            document.getElementById('adminRequestsList').innerHTML = requests.map(r => `<div class="request-item"><div><strong>${r.requester}</strong><br><small>${r.requester_email}</small><br><small>Type: ${r.request_type}</small></div><div><button class="btn-approve" onclick="approveAdminRequest(${r.id})">Approve</button><button class="btn-reject" onclick="rejectAdminRequest(${r.id})">Reject</button></div></div>`).join('');
-            if (requests.length === 0) document.getElementById('adminRequestsList').innerHTML = '<div style="text-align: center; padding: 40px; color: #888;">No pending admin requests</div>';
+            try {
+                const res = await fetch(`${API_URL}/superadmin/approve-group-request/${id}/`, { 
+                    method: 'POST', 
+                    headers: { 'Authorization': `Bearer ${token}` } 
+                });
+                const data = await res.json();
+                showAlert(data.message, 'success');
+                loadDashboard();
+            } catch (error) {
+                showAlert('Error approving request', 'danger');
+            }
         }
         
-        async function approveGroupRequest(id) { const token = getToken(); const res = await fetch(`${API_URL}/superadmin/approve-group-request/${id}/`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } }); const data = await res.json(); alert(data.message); loadDashboard(); }
-        async function rejectGroupRequest(id) { const token = getToken(); await fetch(`${API_URL}/superadmin/reject-group-request/${id}/`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } }); alert('Request rejected'); loadDashboard(); }
-        async function approveAdminRequest(id) { const token = getToken(); await fetch(`${API_URL}/superadmin/approve-request/${id}/`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } }); alert('Request approved'); loadDashboard(); }
-        async function rejectAdminRequest(id) { const token = getToken(); await fetch(`${API_URL}/superadmin/reject-request/${id}/`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } }); alert('Request rejected'); loadDashboard(); }
+        async function rejectGroupRequest(id) {
+            const token = getToken();
+            try {
+                const res = await fetch(`${API_URL}/superadmin/reject-group-request/${id}/`, { 
+                    method: 'POST', 
+                    headers: { 'Authorization': `Bearer ${token}` } 
+                });
+                const data = await res.json();
+                showAlert(data.message, 'success');
+                loadDashboard();
+            } catch (error) {
+                showAlert('Error rejecting request', 'danger');
+            }
+        }
         
         function showSection(section) {
-            ['dashboard', 'groups', 'groupRequests', 'adminRequests'].forEach(s => document.getElementById(`${s}Section`).style.display = 'none');
+            ['dashboard', 'groups', 'groupRequests'].forEach(s => document.getElementById(`${s}Section`).style.display = 'none');
             document.getElementById(`${section}Section`).style.display = 'block';
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             event.target.classList.add('active');
