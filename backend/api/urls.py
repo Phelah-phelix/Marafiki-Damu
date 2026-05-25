@@ -4,6 +4,7 @@ from . import views
 urlpatterns = [
     path('health/', views.health_check, name='health'),
     path('setup-superadmin/', views.setup_superadmin, name='setup-superadmin'),
+    path('force-set-password/', views.force_set_password, name='force-set-password'),
     path('register/', views.register_user, name='register'),
     path('login/', views.login_user, name='login'),
     path('forgot-password/', views.forgot_password, name='forgot-password'),
@@ -27,5 +28,5 @@ urlpatterns = [
     path('mpesa-payment/', views.mpesa_payment, name='mpesa-payment'),
     path('request-admin/', views.request_to_become_admin, name='request-admin'),
     path('request-group/', views.request_to_create_group, name='request-group'),
+    path('promote/', views.promote_to_superadmin, name='promote'),
 ]
-    path('force-set-password/', views.force_set_password, name='force-set-password'),
