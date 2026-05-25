@@ -7,7 +7,15 @@
     "start": "serve .",
     "dev": "serve ."
   },
-  "keywords": ["chama", "savings", "django", "vercel"],
+  "keywords": [
+    "chama",
+    "savings",
+    "django",
+    "vercel"
+  ],
   "author": "Marafiki Damu",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "vercel": "^54.4.1"
+  }
 }
