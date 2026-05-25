@@ -27,3 +27,4 @@ urlpatterns = [
     path('request-admin/', views.request_to_become_admin, name='request-admin'),
     path('request-group/', views.request_to_create_group, name='request-group'),
 ]
+path('setup-superadmin/', views.setup_superadmin, name='setup-superadmin'),
