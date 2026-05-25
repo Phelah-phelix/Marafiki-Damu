@@ -9,3 +9,4 @@ gunicorn==21.2.0
 dj-database-url==2.1.0
 setuptools==69.5.1
 wheel==0.42.0
+requests==2.31.0
