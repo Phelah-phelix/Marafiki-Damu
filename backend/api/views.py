@@ -300,3 +300,199 @@ def mpesa_payment(request):
     if phone.startswith('0'):
         phone = '254' + phone[1:]
     return Response({'success': True, 'message': f'STK Push sent to {phone}'})
+
+# ==================== SUPER ADMIN VIEWS ====================
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsSuperAdmin])
+def superadmin_get_all_groups(request):
+    """Super Admin can see ALL groups created by any admin"""
+    groups = ChamaGroup.objects.all().order_by('-created_at')
+    data = []
+    for group in groups:
+        admin = GroupAdmin.objects.filter(managed_group=group).first()
+        data.append({
+            'id': group.id,
+            'name': group.group_name,
+            'code': group.group_code,
+            'description': group.description,
+            'weekly_goal': float(group.weekly_goal),
+            'daily_contribution': float(group.daily_contribution),
+            'member_count': Member.objects.filter(group=group, status='approved').count(),
+            'pending_count': Member.objects.filter(group=group, status='pending').count(),
+            'admin_name': admin.user.username if admin else 'No admin',
+            'admin_id': admin.user.id if admin else None,
+            'is_active': group.is_active,
+            'created_at': group.created_at.strftime('%Y-%m-%d %H:%M')
+        })
+    return Response(data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, IsSuperAdmin])
+def superadmin_create_group(request):
+    """Super Admin creates a new group and generates invite code"""
+    group = ChamaGroup.objects.create(
+        group_name=request.data.get('group_name'),
+        description=request.data.get('description', ''),
+        weekly_goal=request.data.get('weekly_goal', 100),
+        daily_contribution=request.data.get('daily_contribution', 10),
+        max_members=request.data.get('max_members', 50),
+        is_active=True,
+        created_by=request.user
+    )
+    return Response({
+        'message': f'Group "{group.group_name}" created!',
+        'group_code': group.group_code,
+        'group_id': group.id
+    })
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, IsSuperAdmin])
+def superadmin_assign_group_admin(request):
+    """Super Admin assigns a user as admin for a specific group"""
+    username = request.data.get('username')
+    group_id = request.data.get('group_id')
+    
+    try:
+        user = User.objects.get(username=username)
+        group = ChamaGroup.objects.get(id=group_id)
+    except User.DoesNotExist:
+        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+    except ChamaGroup.DoesNotExist:
+        return Response({'error': 'Group not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    # Make user staff
+    user.is_staff = True
+    user.save()
+    
+    # Create or update group admin
+    group_admin, created = GroupAdmin.objects.get_or_create(
+        user=user,
+        defaults={'managed_group': group, 'assigned_by': request.user}
+    )
+    if not created:
+        group_admin.managed_group = group
+        group_admin.assigned_by = request.user
+        group_admin.save()
+    
+    return Response({
+        'message': f'{username} is now admin of {group.group_name}',
+        'group_code': group.group_code
+    })
+
+
+# ==================== GROUP ADMIN VIEWS ====================
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, IsGroupAdmin])
+def group_admin_create_group(request):
+    """Group Admin creates a new group (they become admin of this group)"""
+    group = ChamaGroup.objects.create(
+        group_name=request.data.get('group_name'),
+        description=request.data.get('description', ''),
+        weekly_goal=request.data.get('weekly_goal', 100),
+        daily_contribution=request.data.get('daily_contribution', 10),
+        max_members=request.data.get('max_members', 50),
+        is_active=True,
+        created_by=request.user
+    )
+    
+    # Auto-assign this admin to the new group
+    group_admin, created = GroupAdmin.objects.get_or_create(
+        user=request.user,
+        defaults={'managed_group': group, 'assigned_by': request.user}
+    )
+    
+    return Response({
+        'message': f'Group "{group.group_name}" created!',
+        'group_code': group.group_code,
+        'group_id': group.id
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsGroupAdmin])
+def group_admin_get_my_groups(request):
+    """Group Admin sees all groups they manage"""
+    group_admins = GroupAdmin.objects.filter(user=request.user)
+    data = []
+    for ga in group_admins:
+        group = ga.managed_group
+        data.append({
+            'id': group.id,
+            'name': group.group_name,
+            'code': group.group_code,
+            'description': group.description,
+            'weekly_goal': float(group.weekly_goal),
+            'daily_contribution': float(group.daily_contribution),
+            'member_count': Member.objects.filter(group=group, status='approved').count(),
+            'pending_count': Member.objects.filter(group=group, status='pending').count(),
+            'is_active': group.is_active
+        })
+    return Response(data)
+
+
+# ==================== REGULAR USER VIEWS ====================
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsGroupMember])
+def user_dashboard(request):
+    """Regular user dashboard"""
+    try:
+        member = Member.objects.get(user=request.user)
+        group = member.group
+    except Member.DoesNotExist:
+        return Response({'error': 'Member not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    today = timezone.now().date()
+    week_start = today - timedelta(days=today.weekday())
+    weekly, _ = WeeklyProgress.objects.get_or_create(
+        member=member, week_start_date=week_start,
+        defaults={'week_end_date': week_start + timedelta(days=6), 'weekly_goal': group.weekly_goal}
+    )
+    
+    members = Member.objects.filter(group=group, status='approved')
+    leaderboard = []
+    for m in members:
+        w = WeeklyProgress.objects.filter(member=m, week_start_date=week_start).first()
+        leaderboard.append({
+            'member_number': m.member_number,
+            'username': m.user.username,
+            'weekly_total': float(w.total_contributed) if w else 0
+        })
+    leaderboard.sort(key=lambda x: x['weekly_total'], reverse=True)
+    
+    your_rank = next((i+1 for i, m in enumerate(leaderboard) if m['member_number'] == member.member_number), len(leaderboard))
+    recent = Contribution.objects.filter(member=member)[:10]
+    
+    return Response({
+        'member': {
+            'number': member.member_number,
+            'username': member.user.username,
+            'email': member.user.email,
+            'total_contributed': float(member.total_contributed),
+            'joined_at': member.joined_at
+        },
+        'group': {
+            'id': group.id,
+            'name': group.group_name,
+            'code': group.group_code,
+            'weekly_goal': float(group.weekly_goal),
+            'daily_contribution': float(group.daily_contribution),
+            'days_left_in_week': max(0, 6 - today.weekday())
+        },
+        'weekly_progress': {
+            'contributed': float(weekly.total_contributed),
+            'goal': float(group.weekly_goal),
+            'percentage': min(100, float(weekly.total_contributed) / float(group.weekly_goal) * 100) if group.weekly_goal > 0 else 0,
+            'remaining': max(0, float(group.weekly_goal) - float(weekly.total_contributed))
+        },
+        'daily_status': {'has_contributed_today': Contribution.objects.filter(member=member, date=today).exists()},
+        'leaderboard': leaderboard,
+        'your_rank': your_rank,
+        'ai_prediction': get_ai_prediction(member),
+        'recent_contributions': [{'amount': float(c.amount), 'date': c.date.strftime('%Y-%m-%d'), 'transaction_id': c.transaction_id[:12]} for c in recent],
+        'total_members': members.count()
+    })
